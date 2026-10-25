@@ -1,0 +1,16 @@
+{
+  "short_name": "StudyCode",
+  "name": "StudyCode Hub — Engineering Study & Code Library",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0c0d12",
+  "theme_color": "#0c0d12",
+  "display": "standalone",
+  "orientation": "portrait"
+}

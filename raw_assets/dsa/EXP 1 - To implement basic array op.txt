@@ -1,0 +1,1016 @@
+EXP 1 :- To implement basic array operations - insertion, deletion, finding the smallest element and finding the largest element - using Python.
+
+CODE:-
+
+def insert(arr):
+    pos = int(input("Enter position: "))
+    value = int(input("Enter number to insert: "))
+
+    if 1 <= pos <= len(arr) + 1:
+        arr.insert(pos - 1, value)
+        print("Array:", arr)
+    else:
+        print("Invalid position")
+
+
+def delete(arr):
+    pos = int(input("Enter position to delete: "))
+
+    if 1 <= pos <= len(arr):
+        arr.pop(pos - 1)
+        print("Array:", arr)
+    else:
+        print("Invalid position")
+
+
+arr = list(map(int, input("Enter array elements: ").split()))
+
+while True:
+    print("\n1. Insert")
+    print("2. Delete")
+    print("3. Find Smallest")
+    print("4. Find Largest")
+    print("5. Display Array")
+    print("6. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        insert(arr)
+
+    elif choice == 2:
+        delete(arr)
+
+    elif choice == 3:
+        if arr:
+            print("Smallest number:", min(arr))
+        else:
+            print("Array is empty")
+
+    elif choice == 4:
+        if arr:
+            print("Largest number:", max(arr))
+        else:
+            print("Array is empty")
+
+    elif choice == 5:
+        print("Array:", arr)
+
+    elif choice == 6:
+        print("Program exited.")
+        break
+
+    else:
+        print("Invalid choice")
+
+
+Algorithm :-
+
+
+ 1. Read the array elements from the user. 
+ 2. Display a menu: Insert, Delete, Find Smallest, Find Largest, Display, Exit.
+ 3. Insert: read position and value; if 1 <= pos <= n+1, insert at index pos-1, else print 'Invalid position'.
+ 4. Delete: read position; if 1 <= pos <= n, remove the element at index pos-1, else print 'Invalid position'. 
+ 5. Smallest / Largest: if the array is non-empty, print min(arr) / max(arr); otherwise print 'Array is empty'. 
+ 6. Display: print the array.
+ 7. Repeat until the user chooses Exit.
+
+
+EXP 2 :- To implement a stack with a fixed capacity using an array (list) and perform Push, Pop, Peek and Display operations.
+
+
+CODE:-
+
+
+MAX = 5
+stack = []
+
+while True:
+    print("\n1. Push")
+    print("2. Pop")
+    print("3. Peek")
+    print("4. Display")
+    print("5. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        if len(stack) == MAX:
+            print("Stack is Full")
+        else:
+            value = int(input("Enter number to push: "))
+            stack.append(value)
+            print("Stack:", stack)
+
+    elif choice == 2:
+        if len(stack) == 0:
+            print("Stack is Empty")
+        else:
+            print("Deleted element:", stack.pop())
+            print("Stack:", stack)
+
+    elif choice == 3:
+        if len(stack) == 0:
+            print("Stack is Empty")
+        else:
+            print("Top element:", stack[-1])
+
+    elif choice == 4:
+        if len(stack) == 0:
+            print("Stack is Empty")
+        else:
+            print("Stack:", stack)
+
+    elif choice == 5:
+        print("Program exited.")
+        break
+
+    else:
+        print("Invalid choice")
+
+
+Algorithm :-
+
+1. Set MAX = 5 and create an empty stack.
+2. Push: if len(stack) == MAX print 'Stack is Full'; otherwise read the value and append it. 
+3. Pop: if the stack is empty print 'Stack is Empty'; otherwise remove and display stack[-1].
+4. Peek: if the stack is empty print 'Stack is Empty'; otherwise display stack[-1]. 
+5. Display: print all elements from bottom to top. 6. Repeat until the user chooses Exit.
+
+
+EXP 3 :- To implement a linear queue with a fixed capacity using an array (list) and perform Enqueue, Dequeue, Peek and Display operations.
+
+CODE:-
+
+MAX = 5
+queue = []
+
+while True:
+    print("\n1. Enqueue")
+    print("2. Dequeue")
+    print("3. Peek")
+    print("4. Display")
+    print("5. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        if len(queue) == MAX:
+            print("Queue is Full")
+        else:
+            value = int(input("Enter number to insert: "))
+            queue.append(value)
+            print("Queue:", queue)
+
+    elif choice == 2:
+        if len(queue) == 0:
+            print("Queue is Empty")
+        else:
+            print("Deleted element:", queue.pop(0))
+            print("Queue:", queue)
+
+    elif choice == 3:
+        if len(queue) == 0:
+            print("Queue is Empty")
+        else:
+            print("Front element:", queue[0])
+
+    elif choice == 4:
+        if len(queue) == 0:
+            print("Queue is Empty")
+        else:
+            print("Queue:", queue)
+
+    elif choice == 5:
+        print("Program exited.")
+        break
+
+    else:
+        print("Invalid choice")
+
+
+Algorithm :-
+
+1. Set MAX = 5 and create an empty queue.
+2. Enqueue: if len(queue) == MAX print 'Queue is Full'; otherwise read the value and append it at the rear.
+3. Dequeue: if the queue is empty print 'Queue is Empty'; otherwise remove and display queue[0]. 
+4. Peek: if the queue is empty print 'Queue is Empty'; otherwise display queue[0]. 
+5. Display: print all elements from front to rear.
+6. Repeat until the user chooses Exit.
+
+
+(5) EXP 4:- To implement a singly linked list and perform insertion and deletion at the beginning and at the end, and display the list.
+
+CODE :-
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+head = None
+
+
+def insert_beginning(value):
+    global head
+
+    new_node = Node(value)
+    new_node.next = head
+    head = new_node
+
+    print("Node inserted at beginning")
+
+
+def insert_end(value):
+    global head
+
+    new_node = Node(value)
+
+    if head is None:
+        head = new_node
+        print("Node inserted at end")
+        return
+
+    temp = head
+
+    while temp.next:
+        temp = temp.next
+
+    temp.next = new_node
+
+    print("Node inserted at end")
+
+
+def delete_beginning():
+    global head
+
+    if head is None:
+        print("Linked List is Empty")
+    else:
+        print("Deleted element:", head.data)
+        head = head.next
+
+
+def delete_end():
+    global head
+
+    if head is None:
+        print("Linked List is Empty")
+
+    elif head.next is None:
+        print("Deleted element:", head.data)
+        head = None
+
+    else:
+        temp = head
+
+        while temp.next.next:
+            temp = temp.next
+
+        print("Deleted element:", temp.next.data)
+        temp.next = None
+
+
+def display():
+    if head is None:
+        print("Linked List is Empty")
+    else:
+        temp = head
+
+        print("Linked List:", end=" ")
+
+        while temp:
+            print(temp.data, end=" -> ")
+            temp = temp.next
+
+        print("None")
+
+
+while True:
+    print("\n1. Insert at Beginning")
+    print("2. Insert at End")
+    print("3. Delete from Beginning")
+    print("4. Delete from End")
+    print("5. Display")
+    print("6. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        value = int(input("Enter number: "))
+        insert_beginning(value)
+
+    elif choice == 2:
+        value = int(input("Enter number: "))
+        insert_end(value)
+
+    elif choice == 3:
+        delete_beginning()
+
+    elif choice == 4:
+        delete_end()
+
+    elif choice == 5:
+        display()
+
+    elif choice == 6:
+        print("Program exited.")
+        break
+
+    else:
+        print("Invalid choice")
+
+
+Algorithm :-
+
+1. Define a Node with data and next; set head = None. 
+2. Insert at beginning: create node; new.next = head; head = new. 
+3. Insert at end: create node; if head is None, head = new; else traverse to the last node and set last.next = new. 
+4. Delete from beginning: if head is None print 'List is Empty'; else head = head.next. 
+5. Delete from end: if empty print message; if single node, head = None; else traverse to the second-last node and set its next = None. 
+6. Display: traverse from head and print each data value. 
+7. Repeat until the user chooses Exit.
+
+
+(6) EXP 5 :- To implement a doubly linked list and perform insertion and deletion at the beginning and at the end, and display the list.
+
+CODE :-
+
+
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
+
+
+head = None
+
+
+def insert_beginning(value):
+    global head
+
+    new_node = Node(value)
+    new_node.next = head
+
+    if head is not None:
+        head.prev = new_node
+
+    head = new_node
+
+
+def insert_end(value):
+    global head
+
+    new_node = Node(value)
+
+    if head is None:
+        head = new_node
+        return
+
+    temp = head
+
+    while temp.next:
+        temp = temp.next
+
+    temp.next = new_node
+    new_node.prev = temp
+
+
+def delete_beginning():
+    global head
+
+    if head is None:
+        print("List is Empty")
+        return
+
+    head = head.next
+
+    if head is not None:
+        head.prev = None
+
+
+def delete_end():
+    global head
+
+    if head is None:
+        print("List is Empty")
+        return
+
+    if head.next is None:
+        head = None
+        return
+
+    temp = head
+
+    while temp.next:
+        temp = temp.next
+
+    temp.prev.next = None
+
+
+def display():
+    temp = head
+
+    if temp is None:
+        print("List is Empty")
+        return
+
+    print("Doubly Linked List:", end=" ")
+
+    while temp:
+        print(temp.data, end=" ")
+        temp = temp.next
+
+    print()
+
+
+while True:
+    print("\n1. Insert at Beginning")
+    print("2. Insert at End")
+    print("3. Delete from Beginning")
+    print("4. Delete from End")
+    print("5. Display")
+    print("6. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        value = int(input("Enter number: "))
+        insert_beginning(value)
+        display()
+
+    elif choice == 2:
+        value = int(input("Enter number: "))
+        insert_end(value)
+        display()
+
+    elif choice == 3:
+        delete_beginning()
+        display()
+
+    elif choice == 4:
+        delete_end()
+        display()
+
+    elif choice == 5:
+        display()
+
+    elif choice == 6:
+        print("Program exited.")
+        break
+
+    else:
+        print("Invalid choice")
+
+
+
+Algorithm :-
+
+ 1. Define a Node with prev, data, next; set head = None. 
+ 2. Insert at beginning: new.next = head; if head exists, head.prev = new; head = new.
+ 3. Insert at end: if empty, head = new; else traverse to the last node, last.next = new and new.prev = last. 
+ 4. Delete from beginning: if empty print message; else head = head.next and, if head exists, head.prev = None. 
+ 5. Delete from end: if empty print message; if one node, head = None; else traverse to the last node and set last.prev.next = None.
+ 6. Display: traverse from head printing each data value.
+ 7. Repeat until the user chooses Exit.
+
+
+(4) EXP 6 :- To convert an infix expression into its prefix (Polish) form using a stack.
+
+CODE :-
+
+def precedence(op):
+    if op == '^':
+        return 3
+    elif op in '*/%':
+        return 2
+    elif op in '+-':
+        return 1
+    return 0
+
+
+def infix_to_prefix(expression):
+    expression = expression[::-1]
+
+    expression = ''.join(
+        ')' if c == '(' else '(' if c == ')' else c
+        for c in expression
+    )
+
+    stack = []
+    result = ""
+
+    for char in expression:
+        if char.isalnum():
+            result += char
+
+        elif char == '(':
+            stack.append(char)
+
+        elif char == ')':
+            while stack and stack[-1] != '(':
+                result += stack.pop()
+
+            if stack:
+                stack.pop()
+
+        else:
+            while (
+                stack
+                and stack[-1] != '('
+                and precedence(stack[-1]) > precedence(char)
+            ):
+                result += stack.pop()
+
+            stack.append(char)
+
+    while stack:
+        result += stack.pop()
+
+    return result[::-1]
+
+
+expression = input("Enter infix expression: ")
+
+print("Prefix expression:", infix_to_prefix(expression))
+
+
+Algorithm :-
+
+1. Reverse the infix expression and interchange '(' and ')'.
+2. Scan the characters left to right. If it is an operand (letter/digit), append it to the result. 
+3. If it is '(' push it on the stack.
+4. If it is ')' pop operators to the result until '(' is found, then discard '('. 
+5. If it is an operator, pop operators of higher precedence from the stack to the result, then push the current operator. 
+6. After the scan, pop all remaining operators to the result. 
+7. Reverse the result; this is the prefix expression.
+
+
+(9) EXP 7 :- To sort a list of numbers in ascending order using the Insertion Sort algorithm.
+
+CODE:-
+
+def insertion_sort(arr):
+    comparisons = 0
+    shifts = 0
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j= i -1
+        print(f"\nComparing key = {key}")
+        while j >= 0:
+            comparisons += 1
+            print(f"Compare {arr[j]} > {key}")
+            if arr[j] > key:
+                shifts += 1
+                print(f"Shift {arr[j]} from index {j} to index {j+1}")
+                arr[j + 1] = arr[j]
+                j -= 1
+            else:
+                print(f"No shift: {arr[j]} <= {key}")
+                break
+        arr[j + 1] = key
+        print(f"Insert {key} at index {j +1}")
+        print("Array:", arr)
+    return arr, comparisons, shifts
+arr = list(map(int, input("Enter elements separated by spaces: ").split()))
+arr, comparisons, shifts = insertion_sort(arr)
+
+print("\nSorted array in ascending order:", arr)
+print("Number of comparisons:", comparisons)
+print("Number of shifts:", shifts)
+
+
+Algorithm :- 
+
+1) Start.
+
+2) Read the number of elements \(n\) and the array.
+
+3) Start from the second element, setting \(i = 1\).
+
+4) Store the current element in key and set \(j = i - 1\).
+
+5) Compare key with the preceding elements.
+
+6) Shift elements greater than key one position to the right.
+
+7) Insert key at its correct position.
+
+8) Repeat steps 4–7 until all elements are processed.
+
+9) Stop.
+
+
+
+(7) EXP 8:- To implement a Binary Search Tree (BST) and perform insertion, deletion, and inorder, preorder and postorder traversals.
+
+CODE:-
+
+class Node:
+    def __init__(self, key):
+        self.val = key
+        self.left = None
+        self.right = None
+
+
+class BinarySearchTree:
+    def __init__(self):
+        self.root = None
+
+    # Insertion Operation
+    def insert(self, key):
+        self.root = self._insert_recursive(self.root, key)
+
+    def _insert_recursive(self, node, key):
+        if node is None:
+            return Node(key)
+
+        if key < node.val:
+            node.left = self._insert_recursive(node.left, key)
+        elif key > node.val:
+            node.right = self._insert_recursive(node.right, key)
+
+        return node
+
+    # Deletion Operation
+    def delete(self, key):
+        self.root = self._delete_recursive(self.root, key)
+
+    def _delete_recursive(self, node, key):
+        if node is None:
+            return node
+
+        if key < node.val:
+            node.left = self._delete_recursive(node.left, key)
+        elif key > node.val:
+            node.right = self._delete_recursive(node.right, key)
+        else:
+            if node.left is None:
+                return node.right
+            elif node.right is None:
+                return node.left
+
+            # Node with two children: Get the inorder successor
+            temp = self._min_value_node(node.right)
+            node.val = temp.val
+            node.right = self._delete_recursive(node.right, temp.val)
+
+        return node
+
+    def _min_value_node(self, node):
+        current = node
+
+        while current.left is not None:
+            current = current.left
+
+        return current
+
+    # Traversal Operations
+    def inorder(self):
+        res = []
+        self._inorder_rec(self.root, res)
+        return res
+
+    def _inorder_rec(self, node, res):
+        if node:
+            self._inorder_rec(node.left, res)
+            res.append(node.val)
+            self._inorder_rec(node.right, res)
+
+    def preorder(self):
+        res = []
+        self._preorder_rec(self.root, res)
+        return res
+
+    def _preorder_rec(self, node, res):
+        if node:
+            res.append(node.val)
+            self._preorder_rec(node.left, res)
+            self._preorder_rec(node.right, res)
+
+    def postorder(self):
+        res = []
+        self._postorder_rec(self.root, res)
+        return res
+
+    def _postorder_rec(self, node, res):
+        if node:
+            self._postorder_rec(node.left, res)
+            self._postorder_rec(node.right, res)
+            res.append(node.val)
+
+
+if __name__ == "__main__":
+    bst = BinarySearchTree()
+
+    user_input = input("Enter initial values for the BST: ")
+
+    if user_input.strip():
+        try:
+            values = [int(x) for x in user_input.split()]
+
+            for v in values:
+                bst.insert(v)
+
+        except ValueError:
+            print("Invalid input. Please enter integers only.")
+
+    print("\n--- Initial Tree Traversals ---")
+    print(f"Inorder (Sorted): {bst.inorder()}")
+    print(f"Preorder:         {bst.preorder()}")
+    print(f"Postorder:        {bst.postorder()}")
+
+    while True:
+        print("\n--- BST Operations Menu ---")
+        print("1. Insert a value")
+        print("2. Delete a value")
+        print("3. Show all traversals")
+        print("4. Exit")
+
+        choice = input("Enter your choice (1-4): ").strip()
+
+        if choice == "1":
+            try:
+                val = int(input("Enter value to insert: "))
+                bst.insert(val)
+                print(f"Successfully inserted {val}.")
+                print(f"Updated Inorder (Sorted): {bst.inorder()}")
+
+            except ValueError:
+                print("Invalid input. Please enter a valid integer.")
+
+        elif choice == "2":
+            try:
+                val = int(input("Enter value to delete: "))
+                bst.delete(val)
+                print(f"Deleted {val} (if it existed in the tree).")
+                print(f"Updated Inorder (Sorted): {bst.inorder()}")
+
+            except ValueError:
+                print("Invalid input. Please enter a valid integer.")
+
+        elif choice == "3":
+            print(f"Inorder:  {bst.inorder()}")
+            print(f"Preorder: {bst.preorder()}")
+            print(f"Postorder: {bst.postorder()}")
+
+        elif choice == "4":
+            print("Exiting program.")
+            break
+
+        else:
+            print("Invalid choice. Please choose a number between 1 and 4.")
+
+Algorithm :- 
+
+A) Algorithm for Insertion
+
+1) Start.
+
+2) Create a new node and store the required data.
+
+3) If the tree is empty, make the new node the root.
+
+4) Otherwise, compare the new value with the current node.
+
+5) If the new value is smaller, move to the left subtree.
+
+6) If the new value is greater, move to the right subtree.
+
+7) Repeat steps 5–6 until an empty position is found.
+
+8) Insert the new node at that position.
+
+9) Stop.
+
+
+B. Algorithm for Deletion
+
+1) Start.
+
+2) Search for the node to be deleted.
+
+3) If the value is smaller than the current node, search in the left subtree.
+
+4) If the value is greater, search in the right subtree.
+
+5) If the node is found, check its children.
+
+6) Case 1: If the node has no child, delete the node.
+
+7) Case 2: If the node has one child, replace the node with its child.
+
+8) Case 3: If the node has two children, find the inorder successor and replace the node with it.
+
+9) Stop.
+
+
+C. Algorithm for Inorder Traversal
+1) Start.
+
+2) If the root is NULL, return.
+
+3) Traverse the left subtree.
+
+4) Visit (print) the root node.
+
+5) Traverse the right subtree.
+
+6) Stop.
+
+
+D. Algorithm for Preorder Traversal
+1) Start.
+
+2) If the root is NULL, return.
+
+3) Visit (print) the root node.
+
+4) Traverse the left subtree.
+
+5) Traverse the right subtree.
+
+6) Stop.
+
+
+(8) EXP 9 :- To Implement a Breadth First Search (BFS) Traversal on a graph and display the vertices visited during the traversal.
+
+CODE:-
+
+from collections import deque
+
+
+class Graph:
+    def __init__(self):
+        self.graph = {}
+
+    def add_vertex(self, vertex):
+        if vertex not in self.graph:
+            self.graph[vertex] = []
+
+    def add_edge(self, source, destination):
+        self.add_vertex(source)
+        self.add_vertex(destination)
+
+        if destination not in self.graph[source]:
+            self.graph[source].append(destination)
+
+        if source not in self.graph[destination]:
+            self.graph[destination].append(source)
+
+    def bfs(self, start_vertex):
+        if start_vertex not in self.graph:
+            print(f"Error: Vertex '{start_vertex}' not found in the graph.")
+            return
+
+        visited = set()
+        queue = deque()
+
+        visited.add(start_vertex)
+        queue.append(start_vertex)
+
+        print("\n--- BFS Traversal Output ---")
+        print("Visited Order:", end=" ")
+
+        while queue:
+            current_vertex = queue.popleft()
+            print(current_vertex, end=" ")
+
+            for neighbor in self.graph[current_vertex]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        print("\n----------------------------")
+
+    def display_bfs_tree(self, start_vertex):
+        """Displays the BFS tree structure level-by-level."""
+
+        if start_vertex not in self.graph:
+            print(f"Error: Vertex '{start_vertex}' not found in the graph.")
+            return
+
+        visited = {start_vertex}
+        queue = deque([start_vertex])
+
+        levels = {start_vertex: 0}
+        tree_structure = {}
+
+        while queue:
+            current_vertex = queue.popleft()
+            current_level = levels[current_vertex]
+
+            if current_level not in tree_structure:
+                tree_structure[current_level] = []
+
+            tree_structure[current_level].append(current_vertex)
+
+            for neighbor in self.graph[current_vertex]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    levels[neighbor] = current_level + 1
+                    queue.append(neighbor)
+
+        print("\n--- BFS Tree Structure (Level-by-Level) ---")
+        print(f"Root Vertex: {start_vertex}")
+
+        for level, nodes in tree_structure.items():
+            print(f"Level {level}: {nodes}")
+
+        print("------------------------------------------")
+
+    def display_graph(self):
+        print("\n--- Graph Adjacency List ---")
+
+        if not self.graph:
+            print("The graph is currently empty.")
+
+        for vertex, neighbors in self.graph.items():
+            print(f"Vertex {vertex} -> Connected to: {neighbors}")
+
+        print("----------------------------")
+
+
+def main():
+    g = Graph()
+
+    while True:
+        print("\n=== GRAPH BFS TRAVERSAL MENU ===")
+        print("1. Add an Edge")
+        print("2. Display Graph (Adjacency List)")
+        print("3. Perform BFS Traversal")
+        print("4. Display BFS Tree (Level-by-Level)")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ").strip()
+
+        if choice == '1':
+            source = input("Enter source vertex: ").strip()
+            destination = input("Enter destination vertex: ").strip()
+
+            g.add_edge(source, destination)
+
+            print(
+                f"Edge ({source} <-> {destination}) "
+                "added successfully!"
+            )
+
+        elif choice == '2':
+            g.display_graph()
+
+        elif choice == '3':
+            start_vertex = input(
+                "Enter the starting vertex for BFS: "
+            ).strip()
+
+            g.bfs(start_vertex)
+
+        elif choice == '4':
+            start_vertex = input(
+                "Enter the starting vertex for the BFS Tree: "
+            ).strip()
+
+            g.display_bfs_tree(start_vertex)
+
+        elif choice == '5':
+            print("Exiting program. Good luck with your practical!")
+            break
+
+        else:
+            print(
+                "Invalid choice! Please choose a valid option "
+                "between 1 and 5."
+            )
+
+
+if __name__ == "__main__":
+    main()
+
+
+Algorithm :- 
+
+A. Algorithm for Adding an Edge
+
+1) Start with the adjacency list adj and take the source u and destination v.
+
+2) Append v to adj[u].
+
+3) Append u to adj[v] (skip this step for a directed graph).
+
+4) Stop.
+
+B. Algorithm for BFS Traversal
+
+1) Input the graph and the source vertex s.
+
+2) Create an empty queue and a visited array. Set all vertices to false.
+
+3) Mark visited[s] = true and enqueue s.
+
+4) While the queue is not empty:
+- Dequeue the front vertex and display it.
+- For each neighbour in adj[s], if visited[j] is false, mark it true and enqueue it.
+5) Stop.

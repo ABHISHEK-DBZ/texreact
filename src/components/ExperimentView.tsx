@@ -99,8 +99,103 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
   };
 
   // Helper to parse markdown text with math blocks and bolding
+  // Helper to convert raw LaTeX expressions to clean, human-readable mathematical typography
+  const cleanMathText = (text: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/\\mu_n/g, 'μₙ')
+      .replace(/\\mu/g, 'μ')
+      .replace(/\\epsilon_{ox}/g, 'ε_ox')
+      .replace(/\\epsilon/g, 'ε')
+      .replace(/\\cdot/g, ' · ')
+      .replace(/\\approx/g, '≈')
+      .replace(/\\le(q)?/g, '≤')
+      .replace(/\\ge(q)?/g, '≥')
+      .replace(/\\ll/g, '≪')
+      .replace(/\\gg/g, '≫')
+      .replace(/\\times/g, '×')
+      .replace(/\\frac\{1\}\{2\}/g, '½')
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+      .replace(/\\left\[/g, '[')
+      .replace(/\\right\]/g, ']')
+      .replace(/\\left\(/g, '(')
+      .replace(/\\right\)/g, ')')
+      .replace(/\\overline\{([^}]+)\}/g, '$1̅')
+      .replace(/\\bar\{Q\}/g, 'Q̅')
+      .replace(/\\bar\{R\}/g, 'R̅')
+      .replace(/\\bar\{([^}]+)\}/g, '$1̅')
+      .replace(/\\text\{([^}]+)\}/g, '$1')
+      .replace(/\\quad/g, '   ')
+      .replace(/\^2/g, '²')
+      .replace(/\^3/g, '³')
+      .replace(/k_n'/g, "k'ₙ")
+      .replace(/k_n/g, 'kₙ')
+      .replace(/k_p'/g, "k'ₚ")
+      .replace(/k_p/g, 'kₚ')
+      .replace(/C_\{ox\}'/g, "C'ox")
+      .replace(/C_\{ox\}/g, 'Cox')
+      .replace(/C_{ox}/g, 'Cox')
+      .replace(/t_\{ox\}'/g, "t'ox")
+      .replace(/t_\{ox\}/g, 'tox')
+      .replace(/t_{ox}/g, 'tox')
+      .replace(/V_\{GS\}/g, 'V_GS')
+      .replace(/V_\{DS\}/g, 'V_DS')
+      .replace(/V_\{TO\}/g, 'V_TO')
+      .replace(/V_\{DD\}/g, 'V_DD')
+      .replace(/V_\{TH\}/g, 'V_TH')
+      .replace(/V_{GS}/g, 'V_GS')
+      .replace(/V_{DS}/g, 'V_DS')
+      .replace(/V_{TO}/g, 'V_TO')
+      .replace(/V_{DD}/g, 'V_DD')
+      .replace(/V_{TH}/g, 'V_TH')
+      .replace(/I_D/g, 'I_D')
+      .replace(/\\/g, '');
+  };
+
+  // Helper to parse markdown text with math blocks, cards, and bolding
   const renderFormattedTheory = (theoryText: string) => {
-    const paragraphs = theoryText.split('\n\n');
+    // Normalize newlines before major blocks so they don't congest
+    const normalized = theoryText
+      .replace(/\r\n/g, '\n')
+      .replace(/\n(####\s+)/g, '\n\n$1')
+      .replace(/\n(###\s+)/g, '\n\n$1')
+      .replace(/\n(---)/g, '\n\n$1\n\n');
+
+    const paragraphs = normalized.split(/\n\s*\n/);
+
+    const renderInlineFormatted = (text: string) => {
+      const parts = text.split(/(\*\*.*?\*\*|\$.*?\$|`.*?`)/g);
+      return parts.map((seg, sIdx) => {
+        if (seg.startsWith('**') && seg.endsWith('**')) {
+          return (
+            <strong key={sIdx} className="font-semibold text-slate-900 dark:text-white">
+              {cleanMathText(seg.slice(2, -2))}
+            </strong>
+          );
+        }
+        if (seg.startsWith('$') && seg.endsWith('$')) {
+          return (
+            <code
+              key={sIdx}
+              className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-[#1a263c] font-mono text-[11px] sm:text-xs text-blue-700 dark:text-blue-300 font-medium border border-blue-200/50 dark:border-blue-900/40"
+            >
+              {cleanMathText(seg.slice(1, -1))}
+            </code>
+          );
+        }
+        if (seg.startsWith('`') && seg.endsWith('`')) {
+          return (
+            <code
+              key={sIdx}
+              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#182234] font-mono text-[11px] sm:text-xs text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-800"
+            >
+              {seg.slice(1, -1)}
+            </code>
+          );
+        }
+        return cleanMathText(seg);
+      });
+    };
 
     return (
       <div className="space-y-4 text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
@@ -108,23 +203,129 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           const trimmed = p.trim();
           if (!trimmed) return null;
 
-          // H3 Heading
+          // Horizontal rule separator
+          if (trimmed === '---') {
+            return (
+              <hr
+                key={pIdx}
+                className="my-6 border-t border-dashed border-slate-200 dark:border-[#22314d]"
+              />
+            );
+          }
+
+          // H3 Heading (Major Section)
           if (trimmed.startsWith('### ')) {
             return (
-              <h3 key={pIdx} className="text-sm md:text-base font-bold text-slate-900 dark:text-white pt-2 border-b border-slate-100 dark:border-[#1e293b] pb-1 font-mono flex items-center gap-2">
-                <span className="w-1.5 h-3.5 bg-blue-600 rounded-sm"></span>
-                {trimmed.replace('### ', '')}
-              </h3>
+              <div
+                key={pIdx}
+                className="pt-5 pb-2 border-b border-slate-200 dark:border-[#22314d] flex items-center gap-2.5"
+              >
+                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full shrink-0"></div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-mono tracking-wide">
+                  {cleanMathText(trimmed.replace('### ', ''))}
+                </h3>
+              </div>
+            );
+          }
+
+          // H4 Sub-Card (Physical Region, Operating Mode, State Analysis)
+          if (trimmed.startsWith('#### ')) {
+            const lines = trimmed.split('\n');
+            const header = lines[0].replace('#### ', '').trim();
+            const bodyLines = lines.slice(1);
+
+            return (
+              <div
+                key={pIdx}
+                className="my-4 rounded-xl border border-slate-200/90 dark:border-[#22314d] bg-slate-50/70 dark:bg-[#121c2e] shadow-sm overflow-hidden"
+              >
+                <div className="px-4 py-3 bg-white/95 dark:bg-[#16233b] border-b border-slate-200/80 dark:border-[#22314d] flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white font-mono tracking-wide">
+                    {cleanMathText(header)}
+                  </h4>
+                </div>
+                <div className="p-4 sm:p-5 space-y-3">
+                  {bodyLines.map((line, lIdx) => {
+                    const lTrimmed = line.trim();
+                    if (!lTrimmed) return null;
+
+                    // Math equation inside card
+                    if (lTrimmed.startsWith('$$') && lTrimmed.endsWith('$$')) {
+                      const math = cleanMathText(lTrimmed.slice(2, -2).trim());
+                      return (
+                        <div
+                          key={lIdx}
+                          className="my-2.5 p-3 rounded-lg bg-blue-50/90 dark:bg-[#192742] border border-blue-200/80 dark:border-blue-800/60 font-mono text-center text-xs sm:text-sm text-blue-950 dark:text-blue-100 font-semibold shadow-inner overflow-x-auto"
+                        >
+                          {math}
+                        </div>
+                      );
+                    }
+
+                    // Bullet item inside card
+                    if (lTrimmed.startsWith('- ') || lTrimmed.startsWith('* ')) {
+                      const content = lTrimmed.replace(/^[-*]\s+/, '');
+                      return (
+                        <div
+                          key={lIdx}
+                          className="flex items-start gap-2.5 text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                          <div className="flex-1">{renderInlineFormatted(content)}</div>
+                        </div>
+                      );
+                    }
+
+                    // Sub-bullet inside card
+                    if (lTrimmed.startsWith('  - ')) {
+                      const content = lTrimmed.replace(/^\s+-\s+/, '');
+                      return (
+                        <div
+                          key={lIdx}
+                          className="flex items-start gap-2 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400 pl-5"
+                        >
+                          <span className="w-1 h-1 rounded-full bg-slate-400 mt-2 shrink-0"></span>
+                          <div className="flex-1">{renderInlineFormatted(content)}</div>
+                        </div>
+                      );
+                    }
+
+                    // Numbered item inside card
+                    if (/^[0-9]+\.\s+/.test(lTrimmed)) {
+                      const num = lTrimmed.match(/^[0-9]+/)?.[0] || '•';
+                      const content = lTrimmed.replace(/^[0-9]+\.\s+/, '');
+                      return (
+                        <div
+                          key={lIdx}
+                          className="flex items-start gap-2.5 text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300"
+                        >
+                          <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono text-[11px] font-bold shrink-0">
+                            {num}
+                          </span>
+                          <div className="flex-1">{renderInlineFormatted(content)}</div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p key={lIdx} className="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                        {renderInlineFormatted(lTrimmed)}
+                      </p>
+                    );
+                  })}
+                </div>
+              </div>
             );
           }
 
           // Math display block ($$ ... $$)
           if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
-            const math = trimmed.slice(2, -2).trim();
+            const math = cleanMathText(trimmed.slice(2, -2).trim());
             return (
               <div
                 key={pIdx}
-                className="my-3 p-3.5 rounded-xl bg-blue-50/70 dark:bg-[#162238] border border-blue-200 dark:border-blue-900/60 font-mono text-center text-xs md:text-sm text-blue-950 dark:text-blue-200 overflow-x-auto shadow-inner"
+                className="my-3.5 p-3.5 rounded-xl bg-blue-50/80 dark:bg-[#162238] border border-blue-200 dark:border-blue-900/60 font-mono text-center text-xs md:text-sm text-blue-950 dark:text-blue-200 font-semibold overflow-x-auto shadow-inner"
               >
                 {math}
               </div>
@@ -153,7 +354,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
                       <tr>
                         {headers.map((h, hIdx) => (
                           <th key={hIdx} className="px-3.5 py-2.5">
-                            {h}
+                            {cleanMathText(h)}
                           </th>
                         ))}
                       </tr>
@@ -163,7 +364,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
                         <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-[#111827]">
                           {row.map((cell, cIdx) => (
                             <td key={cIdx} className="px-3.5 py-2 text-slate-700 dark:text-slate-300">
-                              {cell}
+                              {renderInlineFormatted(cell)}
                             </td>
                           ))}
                         </tr>
@@ -175,28 +376,25 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
             }
           }
 
-          // Bullet list items
-          if (trimmed.startsWith('1. ') || trimmed.startsWith('2. ') || trimmed.startsWith('3. ') || trimmed.startsWith('4. ') || trimmed.startsWith('5. ') || trimmed.startsWith('- ')) {
+          // Bullet list items outside cards
+          if (
+            trimmed.startsWith('1. ') ||
+            trimmed.startsWith('2. ') ||
+            trimmed.startsWith('3. ') ||
+            trimmed.startsWith('4. ') ||
+            trimmed.startsWith('5. ') ||
+            trimmed.startsWith('- ') ||
+            trimmed.startsWith('* ')
+          ) {
             const listItems = trimmed.split('\n');
             return (
               <ul key={pIdx} className="space-y-2 pl-2">
                 {listItems.map((item, iIdx) => {
-                  const cleaned = item.replace(/^[0-9]+\.\s+/, '').replace(/^-\s+/, '');
-                  const parts = cleaned.split(/(\*\*.*?\*\*|\$.*?\$)/g);
+                  const cleaned = item.replace(/^[0-9]+\.\s+/, '').replace(/^[-*]\s+/, '');
                   return (
-                    <li key={iIdx} className="flex items-start gap-2 text-xs md:text-sm">
+                    <li key={iIdx} className="flex items-start gap-2.5 text-xs md:text-sm leading-relaxed">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
-                      <div>
-                        {parts.map((seg, sIdx) => {
-                          if (seg.startsWith('**') && seg.endsWith('**')) {
-                            return <strong key={sIdx} className="font-semibold text-slate-900 dark:text-white">{seg.slice(2, -2)}</strong>;
-                          }
-                          if (seg.startsWith('$') && seg.endsWith('$')) {
-                            return <code key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#182234] font-mono text-xs text-blue-700 dark:text-blue-300">{seg.slice(1, -1)}</code>;
-                          }
-                          return seg;
-                        })}
-                      </div>
+                      <div className="flex-1">{renderInlineFormatted(cleaned)}</div>
                     </li>
                   );
                 })}
@@ -205,18 +403,9 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           }
 
           // Standard paragraph with bold/code segments
-          const parts = trimmed.split(/(\*\*.*?\*\*|\$.*?\$)/g);
           return (
             <p key={pIdx} className="leading-relaxed">
-              {parts.map((seg, sIdx) => {
-                if (seg.startsWith('**') && seg.endsWith('**')) {
-                  return <strong key={sIdx} className="font-semibold text-slate-900 dark:text-white">{seg.slice(2, -2)}</strong>;
-                }
-                if (seg.startsWith('$') && seg.endsWith('$')) {
-                  return <code key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#182234] font-mono text-xs text-blue-700 dark:text-blue-300">{seg.slice(1, -1)}</code>;
-                }
-                return seg;
-              })}
+              {renderInlineFormatted(trimmed)}
             </p>
           );
         })}
@@ -358,9 +547,13 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           )}
 
           {experiment.booleanExpression && (
-            <div className="mt-3 p-3 rounded-lg bg-indigo-50/70 dark:bg-[#151c2e] border border-indigo-200 dark:border-indigo-900/60 flex items-center gap-2 font-mono text-xs md:text-sm text-indigo-900 dark:text-indigo-200 overflow-x-auto">
-              <span className="font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 shrink-0">Governing Equation:</span>
-              <span className="font-bold">{experiment.booleanExpression}</span>
+            <div className="mt-3.5 p-3.5 rounded-xl bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 dark:from-[#131d33] dark:via-[#162238] dark:to-[#0f172a] border border-blue-200/80 dark:border-blue-900/60 flex items-center gap-3 text-xs md:text-sm text-slate-800 dark:text-blue-100 shadow-sm overflow-x-auto">
+              <span className="px-2.5 py-1 rounded-md bg-blue-600 dark:bg-blue-500 text-white font-mono font-bold text-[11px] tracking-wider uppercase shrink-0">
+                Governing Equation
+              </span>
+              <span className="font-mono font-semibold tracking-wide">
+                {cleanMathText(experiment.booleanExpression)}
+              </span>
             </div>
           )}
         </section>

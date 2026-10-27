@@ -100,6 +100,8 @@ export function exportExperimentPdf(experiment: Experiment, subject: Subject): v
     // Clean markdown headings/bolding for PDF
     const cleanTheory = experiment.theory
       .replace(/###\s+/g, '\n[SECTION] ')
+      .replace(/####\s+/g, '\n[SUBSECTION] ')
+      .replace(/---/g, '\n')
       .replace(/\*\*/g, '')
       .replace(/\$\$/g, '')
       .replace(/\$/g, '');
@@ -111,6 +113,12 @@ export function exportExperimentPdf(experiment: Experiment, subject: Subject): v
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(37, 99, 235);
         doc.text(tl.replace('[SECTION] ', ''), margin, cursorY);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+      } else if (tl.startsWith('[SUBSECTION] ')) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(15, 23, 42);
+        doc.text(tl.replace('[SUBSECTION] ', '▶ '), margin, cursorY);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(51, 65, 85);
       } else {

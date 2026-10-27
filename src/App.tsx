@@ -13,6 +13,7 @@ import {
   addRecentlyViewed,
   getCustomSubjects,
   saveCustomSubjects,
+  clearCustomSubjects,
 } from './utils/storage';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -35,24 +36,26 @@ export function App() {
   // Subjects Library
   const [subjects, setSubjects] = useState<Subject[]>(() => {
     try {
+      localStorage.removeItem('studycode_custom_subjects_v1');
+      localStorage.removeItem('studycode_custom_subjects_v2');
       const custom = getCustomSubjects();
       if (custom && custom.length > 0) {
         const dsaSub = custom.find((s) => s.id === 'dsa');
         const dvlsiSub = custom.find((s) => s.id === 'dvlsi');
-        // Ensure DSA contains the verified 9 experiments and DVLSI contains the 5 verified experiments
+        // Ensure DSA contains the verified 9 experiments and DVLSI contains the 5 verified experiments with modern theory formatting
         if (
           dsaSub &&
           dsaSub.experiments.length >= 9 &&
           dsaSub.experiments[0].codeSnippets?.[0]?.language === 'python' &&
           dvlsiSub &&
-          dvlsiSub.experiments.length >= 5
+          dvlsiSub.experiments.length >= 5 &&
+          dvlsiSub.experiments[0].theory?.includes('### 1.')
         ) {
           return custom;
         }
       }
       // Stale cache detected; clear and default to authentic INITIAL_SUBJECTS
-      localStorage.removeItem('studycode_custom_subjects_v1');
-      localStorage.removeItem('studycode_custom_subjects_v2');
+      clearCustomSubjects();
     } catch {
       // ignore
     }
@@ -181,7 +184,7 @@ export function App() {
   // Reset to default data
   const handleResetToDefaults = () => {
     setSubjects(INITIAL_SUBJECTS);
-    localStorage.removeItem('studycode_custom_subjects_v1');
+    clearCustomSubjects();
   };
 
   // Active Subject & Experiment references

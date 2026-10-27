@@ -2,7 +2,7 @@ import type { UserProgress, Subject } from '../types';
 
 const PROGRESS_KEY = 'studycode_progress_v1';
 const SITE_TITLE_KEY = 'studycode_site_title_v1';
-const CUSTOM_SUBJECTS_KEY = 'studycode_custom_subjects_v2';
+const CUSTOM_SUBJECTS_KEY = 'studycode_custom_subjects_v3';
 const THEME_KEY = 'studycode_theme_v1';
 
 export type ThemeMode = 'light' | 'dark';
@@ -54,7 +54,12 @@ export function getUserProgress(): UserProgress {
     if (!raw) {
       return { bookmarks: [], reviewedItems: [], recentlyViewed: [] };
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      bookmarks: Array.isArray(parsed?.bookmarks) ? parsed.bookmarks : [],
+      reviewedItems: Array.isArray(parsed?.reviewedItems) ? parsed.reviewedItems : [],
+      recentlyViewed: Array.isArray(parsed?.recentlyViewed) ? parsed.recentlyViewed : [],
+    };
   } catch {
     return { bookmarks: [], reviewedItems: [], recentlyViewed: [] };
   }
@@ -124,6 +129,14 @@ export function getCustomSubjects(): Subject[] | null {
     return JSON.parse(data);
   } catch {
     return null;
+  }
+}
+
+export function clearCustomSubjects(): void {
+  try {
+    localStorage.removeItem(CUSTOM_SUBJECTS_KEY);
+  } catch (e) {
+    console.error('Failed to clear subjects:', e);
   }
 }
 

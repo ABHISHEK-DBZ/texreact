@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studycode-hub-v1';
+const CACHE_NAME = 'studycode-hub-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -27,6 +27,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Network-first for navigations so deployed updates are picked up
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
   // Cache-first strategy for static assets and network fallback
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

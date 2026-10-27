@@ -8,27 +8,59 @@ export const DVLSI_EXPERIMENTS: Experiment[] = [
     title: 'MOSFET Drain and Transfer Characteristics (Depletion/Zero-VTO vs. Enhancement Mode VTO=2V)',
     chapter: 'MOSFET Device Characterization',
     topic: 'Drain & Transfer I-V Curves',
-    aim: 'To simulate and analyze the Drain (I_D vs. V_DS) and Transfer (I_D vs. V_GS) characteristics of an N-channel MOSFET using LTspice XVII, investigating the behavioral shift between a zero-threshold device (VTO = 0V) and an enhancement-mode transistor with an explicit threshold voltage (VTO = 2V).',
-    problemStatement: 'Construct a dual DC-sweep simulation in LTspice XVII for an NMOS transistor with gate series resistor R1 = 10Ω and drain load resistor R2 = 220Ω. Observe how altering the SPICE threshold parameter VTO shifts the conduction threshold on the transfer curve and alters the pinch-off boundary between linear (triode) and saturation regions across the family of drain curves.',
-    theory: `The Metal-Oxide-Semiconductor Field-Effect Transistor (MOSFET) is a four-terminal, voltage-controlled semiconductor device that forms the fundamental switching element in all modern CMOS integrated circuits.
+    aim: 'To simulate and analyze the Drain (ID vs. VDS) and Transfer (ID vs. VGS) characteristics of an N-channel MOSFET using LTspice XVII, investigating the behavioral shift between a zero-threshold device (VTO = 0V) and an enhancement-mode transistor with an explicit threshold voltage (VTO = 2V).',
+    problemStatement: 'Construct a dual DC-sweep simulation in LTspice XVII for an NMOS transistor with gate series resistor R1 = 10 Ω and drain load resistor R2 = 220 Ω. Observe how altering the SPICE threshold parameter VTO shifts the conduction threshold on the transfer curve and alters the pinch-off boundary between linear (triode) and saturation regions across the family of drain curves.',
+    theory: `### 1. MOSFET Structure and Fundamental Working Principle
 
-### 1. Device Physics & Operating Regions
-An N-channel enhancement MOSFET is fabricated on a p-type substrate with two heavily doped n+ regions serving as the Drain and Source. An insulating layer of silicon dioxide (SiO2) separates the metallic/polysilicon Gate electrode from the silicon substrate channel region.
+The Metal-Oxide-Semiconductor Field-Effect Transistor (MOSFET) is a voltage-controlled, four-terminal semiconductor device consisting of **Gate (G)**, **Drain (D)**, **Source (S)**, and **Body / Substrate (B)**.
 
-The operation of the device is partitioned into three distinct physical regimes:
-1. **Cutoff Region (V_GS < V_TO):**
-   When the gate-to-source voltage is less than the threshold voltage, no inversion layer is formed under the gate oxide. Only negligible subthreshold leakage current flows between drain and source (I_D ≈ 0).
-2. **Linear / Triode Region (V_GS ≥ V_TO and V_DS < V_GS - V_TO):**
-   When V_GS exceeds V_TO, mobile electrons accumulate to form a continuous n-type channel connecting source to drain. Applying a small drain-to-source voltage V_DS establishes an electric field that sweeps electrons from source to drain. The channel acts as a voltage-controlled linear resistor:
-   $$I_D = \\mu_n C_{ox} \\frac{W}{L} \\left[ (V_{GS} - V_{TO}) V_{DS} - \\frac{1}{2} V_{DS}^2 \\right]$$
-3. **Saturation Region (V_GS ≥ V_TO and V_DS ≥ V_GS - V_TO):**
-   As V_DS is increased, the channel potential near the drain end rises to (V_GS - V_TO), reducing the local oxide voltage to zero. This causes channel pinch-off at the drain edge. Electrons entering the pinch-off depletion region are swept across by the high electric field. Beyond this pinch-off point, the drain current becomes virtually independent of further increases in V_DS (neglecting channel length modulation λ):
-   $$I_D = \\frac{1}{2} \\mu_n C_{ox} \\frac{W}{L} (V_{GS} - V_{TO})^2 = \\frac{1}{2} k_n' \\frac{W}{L} (V_{GS} - V_{TO})^2$$
+In an N-channel enhancement MOSFET:
+- The device is built upon a **p-type silicon substrate**.
+- Two heavily doped **n+ wells** form the Source and Drain terminals.
+- A thin dielectric layer of **silicon dioxide (SiO2)** insulates the metallic or polysilicon Gate from the substrate channel region.
+- Applying a positive Gate-to-Source voltage ($V_{GS}$) creates an electric field that repels holes from the substrate surface and attracts free electrons, creating an **n-type inversion layer** (the conducting channel).
 
-### 2. Significance of Threshold Voltage (V_TO)
-The threshold voltage V_TO represents the minimum gate bias required to achieve strong inversion at the semiconductor surface. In LTspice, the default generic NMOS model assumes VTO = 0V. When VTO = 0V, current begins flowing immediately upon applying any positive V_GS.
+---
 
-In contrast, practical enhancement-mode NMOS devices utilize an explicit positive threshold voltage (e.g., VTO = 2V, modeled via \`.MODEL NMOS1 NMOS (VTO=2)\`). This suppresses conduction for all gate voltages V_GS ≤ 2V, shifting the entire transfer characteristic rightward by exactly 2V and demanding a gate overdrive voltage of V_OV = V_GS - 2V to establish current flow.`,
+### 2. The Three Distinct Physical Operating Regions
+
+#### Region 1: Cutoff Mode (VGS < VTO)
+- **Physical Condition:** The gate-to-source bias is below the threshold voltage ($V_{GS} < V_{TO}$).
+- **Surface State:** No conductive inversion channel exists under the gate oxide. The p-type surface remains un-inverted.
+- **Drain Current:** The drain current is virtually zero ($I_D \approx 0\text{ A}$), limited only to minute subthreshold leakage current.
+- **Circuit Behavior:** The transistor acts as an **open switch** (OFF state).
+
+#### Region 2: Linear / Triode Mode (VGS ≥ VTO and VDS < VGS - VTO)
+- **Physical Condition:** Gate voltage exceeds threshold ($V_{GS} \ge V_{TO}$) creating a continuous channel from Source to Drain, and drain bias is small ($V_{DS} < V_{GS} - V_{TO}$).
+- **Surface State:** The channel has uniform depth along the channel length. Electrons drift freely from Source to Drain under the lateral electric field.
+- **Governing Current Equation:**
+  $$I_D = k_n' \cdot \left(\frac{W}{L}\right) \cdot \left[ (V_{GS} - V_{TO}) \cdot V_{DS} - \frac{1}{2} \cdot V_{DS}^2 \right]$$
+  *(where $k_n' = \mu_n \cdot C_{ox}$ is the process transconductance parameter, $W$ is channel width, and $L$ is channel length).*
+- **Circuit Behavior:** The transistor behaves as a **voltage-controlled linear resistor**, where the channel resistance decreases as $V_{GS}$ increases.
+
+#### Region 3: Saturation / Pinch-Off Mode (VGS ≥ VTO and VDS ≥ VGS - VTO)
+- **Physical Condition:** Drain voltage reaches or exceeds the saturation boundary:
+  $$V_{DS,sat} = V_{GS} - V_{TO}$$
+- **Surface State:** As $V_{DS}$ increases, the local voltage across the gate oxide near the drain end drops to $V_{TO}$. The channel pinches off at the drain edge.
+- **Carrier Transport:** Electrons arriving at the pinch-off point are swept across the drain depletion region by the high lateral electric field.
+- **Governing Current Equation (Square-Law):**
+  $$I_D = \frac{1}{2} \cdot k_n' \cdot \left(\frac{W}{L}\right) \cdot (V_{GS} - V_{TO})^2$$
+- **Circuit Behavior:** The drain current reaches a constant plateau independent of further increases in $V_{DS}$, functioning as an ideal **voltage-controlled current source**.
+
+---
+
+### 3. Threshold Voltage (VTO) Shift Analysis
+
+#### Case A: Zero-Threshold Device (VTO = 0V)
+- Conduction commences immediately at the origin ($V_{GS} = 0\text{V}$).
+- Even with zero gate overdrive, mobile carrier density is sufficient to support immediate linear and saturation currents.
+- In LTspice, the default generic NMOS model assumes $V_{TO} = 0\text{V}$, resulting in a quadratic curve rising directly from $0\text{V}$ up to $1.1\text{ mA}$ at $10\text{V}$.
+
+#### Case B: Enhancement-Mode Device (VTO = 2V)
+- Defined via the SPICE directive: \`.MODEL NMOS1 NMOS (VTO=2)\`.
+- Current is **completely blocked ($I_D = 0\text{ A}$)** for all gate voltages from $0\text{V}$ to $2.0\text{V}$.
+- The entire transfer characteristic shifts horizontally to the right by exactly $2.0\text{V}$.
+- Requires a positive gate overdrive voltage ($V_{OV} = V_{GS} - 2\text{V}$) to initiate channel conduction, reflecting the true behavior of practical CMOS logic transistors.`,
     prerequisites: [
       {
         concept: 'MOSFET Terminals & Inversion',
@@ -46,7 +78,7 @@ In contrast, practical enhancement-mode NMOS devices utilize an explicit positiv
         example: '.dc v2 0 30 0.1 v1 0 10 2 sweeps V2 from 0 to 30V for each V1 in {0, 2, 4, 6, 8, 10V}.'
       }
     ],
-    booleanExpression: 'I_D = \\frac{1}{2} k_n \\left(\\frac{W}{L}\\right) (V_{GS} - V_{TO})^2 \\quad \\text{for } V_{DS} \\ge V_{GS} - V_{TO}',
+    booleanExpression: "I_D = ½ · k_n' · (W / L) · (V_GS - V_TO)²   [Saturation: V_DS ≥ V_GS - V_TO]",
     logicDiagrams: [
       {
         id: 'dvlsi-exp1-diag1',
@@ -190,15 +222,15 @@ V2 n004 0 30
 .end`
       }
     ],
-    result: 'The Drain (I_D vs V_DS) and Transfer (I_D vs V_GS) characteristics of the NMOS transistor were successfully simulated and analyzed using LTspice XVII. For VTO = 0V, conduction commences at zero gate bias, reaching 1.1 mA at V_GS = 10V. For VTO = 2V, conduction is completely inhibited for V_GS ≤ 2.0V, shifting the transfer threshold by exactly 2.0V rightward and verifying standard enhancement-mode operation.',
-    conclusion: 'Threshold voltage V_TO is the primary parameter governing MOSFET conduction and switching. Setting V_TO > 0V is imperative in digital CMOS design to ensure complete turn-off in the cutoff region and eliminate static leakage currents. In saturation, drain current adheres closely to the square-law relation with respect to gate overdrive voltage (V_GS - V_TO).',
+    result: 'The Drain (ID vs VDS) and Transfer (ID vs VGS) characteristics of the NMOS transistor were successfully simulated and analyzed using LTspice XVII. For VTO = 0V, conduction commences at zero gate bias, reaching 1.1 mA at VGS = 10V. For VTO = 2V, conduction is completely inhibited for VGS ≤ 2.0V, shifting the transfer threshold by exactly 2.0V rightward and verifying standard enhancement-mode operation.',
+    conclusion: 'Threshold voltage VTO is the primary parameter governing MOSFET conduction and switching. Setting VTO > 0V is imperative in digital CMOS design to ensure complete turn-off in the cutoff region and eliminate static leakage currents. In saturation, drain current adheres closely to the square-law relation with respect to gate overdrive voltage (VGS - VTO).',
     vivaQuestions: [
       {
         id: 'dvlsi-viva-1-1',
         questionNumber: 1,
         subjectId: 'dvlsi',
         experimentId: 'dvlsi-exp-1',
-        question: 'What is the physical meaning of threshold voltage (V_TO) in an NMOS transistor?',
+        question: 'What is the physical meaning of threshold voltage (VTO) in an NMOS transistor?',
         answer: 'Threshold voltage is the minimum positive gate-to-source voltage required to invert the p-type substrate surface under the gate oxide from p-type to n-type (strong inversion), establishing a continuous electron conduction channel between source and drain.',
         category: 'viva'
       },
@@ -207,8 +239,8 @@ V2 n004 0 30
         questionNumber: 2,
         subjectId: 'dvlsi',
         experimentId: 'dvlsi-exp-1',
-        question: 'Why does drain current saturate and become independent of V_DS in the saturation region?',
-        answer: 'When V_DS reaches V_DS,sat = V_GS - V_TO, the channel pinches off at the drain end because the local gate-to-channel potential falls to V_TO. Any further increase in V_DS simply widens the drain depletion region rather than increasing channel charge, keeping the current constant.',
+        question: 'Why does drain current saturate and become independent of VDS in the saturation region?',
+        answer: 'When VDS reaches VDS,sat = VGS - VTO, the channel pinches off at the drain end because the local gate-to-channel potential falls to VTO. Any further increase in VDS simply widens the drain depletion region rather than increasing channel charge, keeping the current constant.',
         category: 'viva'
       },
       {
@@ -225,8 +257,8 @@ V2 n004 0 30
         questionNumber: 4,
         subjectId: 'dvlsi',
         experimentId: 'dvlsi-exp-1',
-        question: 'How do you extract threshold voltage V_TO graphically from a transfer characteristic curve?',
-        answer: 'In the saturation region, plot sqrt(I_D) versus V_GS. The resulting straight line can be extrapolated to the horizontal axis (where sqrt(I_D) = 0). The V_GS intercept yields the threshold voltage V_TO.',
+        question: 'How do you extract threshold voltage VTO graphically from a transfer characteristic curve?',
+        answer: 'In the saturation region, plot sqrt(ID) versus VGS. The resulting straight line can be extrapolated to the horizontal axis (where sqrt(ID) = 0). The VGS intercept yields the threshold voltage VTO.',
         category: 'viva'
       },
       {
@@ -235,23 +267,23 @@ V2 n004 0 30
         subjectId: 'dvlsi',
         experimentId: 'dvlsi-exp-1',
         question: 'What is channel length modulation (λ), and how does it alter the ideal saturation curve?',
-        answer: 'Channel length modulation is the shortening of the effective channel length (L_eff) as V_DS increases past pinch-off. It introduces a finite positive slope in the saturation region: I_D = I_D,sat * (1 + λ * V_DS), resulting in a non-infinite output resistance r_o = 1 / (λ * I_D).',
+        answer: 'Channel length modulation is the shortening of the effective channel length (Leff) as VDS increases past pinch-off. It introduces a finite positive slope in the saturation region: ID = ID,sat * (1 + λ * VDS), resulting in a non-infinite output resistance ro = 1 / (λ * ID).',
         category: 'viva'
       }
     ],
     quickRevision: {
       keyTakeaways: [
-        'Cutoff: V_GS < V_TO (I_D ≈ 0).',
-        'Triode: V_DS < V_GS - V_TO (Channel continuous, acts as resistor).',
-        'Saturation: V_DS ≥ V_GS - V_TO (Pinch-off occurs, current follows square law).',
+        'Cutoff: VGS < VTO (ID ≈ 0 A).',
+        'Triode: VDS < VGS - VTO (Channel continuous, acts as resistor).',
+        'Saturation: VDS ≥ VGS - VTO (Pinch-off occurs, current follows square law).',
         'VTO = 2V requires an additional 2V gate overdrive compared to VTO = 0V.'
       ],
       commonPitfalls: [
-        'Confusing V_DS,sat with V_TO: V_DS,sat = V_GS - V_TO, not V_TO alone.',
+        'Confusing VDS,sat with VTO: VDS,sat = VGS - VTO, not VTO alone.',
         'Neglecting the difference between depletion mode (normally-on, VTO ≤ 0) and enhancement mode (normally-off, VTO > 0).'
       ],
       examTips: [
-        'In viva, remember the square-law equation: I_D = 0.5 * k_n\' * (W/L) * (V_GS - V_TO)^2.',
+        'In viva, remember the square-law equation: ID = 0.5 * kn\' * (W/L) * (VGS - VTO)²',
         'Be ready to explain how SPICE .dc directives step primary vs secondary voltage sources.'
       ]
     },
@@ -271,47 +303,49 @@ V2 n004 0 30
     topic: 'Dennard Scaling & Power-Delay Trade-offs',
     aim: 'To model, simulate, and compare the I-V characteristics of an NMOS transistor in LTspice XVII under three operational regimes: (1) Unscaled baseline, (2) Constant Voltage Scaling, and (3) Full / Constant Electric Field Scaling, verifying Dennard scaling rules for saturation current and power dissipation.',
     problemStatement: 'Using an initial unscaled NMOS baseline with VTO = 2V, kp = 100µA/V², V1 = 10V, and V2 = 30V, apply a scaling factor S = 2. Evaluate how scaling transconductance kp to 200µ under constant voltage doubles saturation current, and how scaling both voltages by 1/S (V1=5V, V2=15V, VTO=1V) under full scaling decreases current by 1/S while preserving internal electric field reliability.',
-    theory: `MOSFET scaling is the systematic reduction of transistor geometric dimensions and operating voltages to achieve higher integration density, improved switching speeds, and lower energy consumption per logic operation.
+    theory: `### 1. The Scaling Principle and Scaling Factor S
 
-### 1. The Scaling Principle & Scaling Factor S
-When geometric dimensions are shrunk by a dimensionless scaling factor $S > 1$ ($S \\approx \\sqrt{2} \\approx 1.414$ per technology generation):
-- Gate length: $L' = L / S$
-- Gate width: $W' = W / S$
-- Gate oxide thickness: $t_{ox}' = t_{ox} / S$
-- Substrate doping concentration: $N_A' = S \\cdot N_A$
+In VLSI design, shrinking device dimensions enables packing more transistors into a given silicon area, lowering cost and boosting circuit operating speed.
 
-Because oxide thickness is reduced by $1/S$, the gate oxide capacitance per unit area increases proportionally:
-$$C_{ox}' = \\frac{\\epsilon_{ox}}{t_{ox}'} = S \\cdot C_{ox}$$
-Consequently, the process transconductance parameter $k_p = \\mu_n C_{ox}$ scales up by $S$:
-$$k_p' = S \\cdot k_p$$
+When physical dimensions are reduced by a dimensionless scaling factor $S > 1$ (typically $S \approx \sqrt{2} \approx 1.414$ per technology generation):
+- Gate length scales as: $L' = L / S$
+- Gate width scales as: $W' = W / S$
+- Gate oxide thickness scales as: $t_{ox}' = t_{ox} / S$
+- Substrate doping increases: $N_A' = S \cdot N_A$
 
-### 2. Full / Constant Electric Field Scaling (Dennard Scaling)
-Introduced by Robert Dennard in 1974, Full Scaling scales **both geometric dimensions AND operating voltages** by the same factor $1/S$:
-- Operating voltage: $V_{DD}' = V_{DD} / S$
-- Threshold voltage: $V_{TO}' = V_{TO} / S$
-- Electric field: $E' = \\frac{V_{DD}'}{t_{ox}'} = \\frac{V_{DD}/S}{t_{ox}/S} = E$ (**Constant!**)
+Because gate oxide thickness is reduced by $1/S$, gate capacitance per unit area increases:
+$$C_{ox}' = \frac{\epsilon_{ox}}{t_{ox}'} = S \cdot C_{ox}$$
 
-**Current Scaling:**
-$$I_{D,sat}' = \\frac{1}{2} k_p' \\left(\\frac{W'}{L'}\\right) (V_{GS}' - V_{TO}')^2 = \\frac{1}{2} (S \\cdot k_p) \\left(\\frac{W/S}{L/S}\\right) \\left(\\frac{V_{GS} - V_{TO}}{S}\\right)^2 = \\frac{I_{D,sat}}{S}$$
-The saturation current decreases by $1/S$. In our simulation with $S = 2$:
-- Baseline current: $I_{D,sat} \\approx 3.3\\text{ mA}$
-- Full scaled current: $I_{D,sat}' \\approx 1.6\\text{ mA}$ ($3.3 / 2 = 1.65\\text{ mA}$, exactly confirmed by simulation!)
+Consequently, the process transconductance parameter $k_p = \mu_n \cdot C_{ox}$ scales up directly by $S$:
+$$k_p' = S \cdot k_p$$
 
-**Power Scaling:**
-- Power per gate: $P' = V' \\cdot I' = \\left(\\frac{V}{S}\\right) \\left(\\frac{I}{S}\\right) = \\frac{P}{S^2}$
-- Gate area: $A' = W' \\cdot L' = \\frac{A}{S^2}$
-- **Power Density:** $\\frac{P'}{A'} = \\frac{P/S^2}{A/S^2} = \\frac{P}{A}$ (**Constant power density prevents chip overheating!**)
+---
 
-### 3. Constant Voltage Scaling
-In the 1980s and early 1990s, industry kept supply voltages fixed at standard 5V (TTL compatibility) while shrinking transistor dimensions:
-- Dimensions: $L' = L/S, W' = W/S, t_{ox}' = t_{ox}/S \\implies k_p' = S \\cdot k_p = 200\\mu$
-- Voltages: $V_{DD}' = V_{DD} = 30\\text{V}, V_{GS}' = V_{GS} = 10\\text{V}, V_{TO}' = 2\\text{V}$ (Unchanged!)
+### 2. Three Comparative Scaling Modes
 
-**Consequences:**
-- Drain Current: $I_{D,sat}' = S \\cdot I_{D,sat} = 2 \\times 3.3\\text{ mA} = 6.6\\text{ mA}$ (Current doubles!)
-- Power per gate: $P' = V \\cdot I' = S \\cdot P$ (Power increases by $S$)
-- **Power Density:** $\\frac{P'}{A'} = \\frac{S \\cdot P}{A / S^2} = S^3 \\cdot \\left(\\frac{P}{A}\\right)$ (Explosive $S^3 = 8\\times$ surge in heat generation!)
-- **Electric Field:** $E' = S \\cdot E$ (Triggers hot carrier injection, oxide breakdown, and reliability failures).`,
+#### Mode 1: Unscaled Baseline Transistor
+- **Model Card:** \`.Model NMOS1 NMOS (VTO=2 kp=100u)\`
+- **Bias Voltages:** $V_1 = 10\text{V}$, $V_2 = 30\text{V}$
+- **Observed Current:** Maximum saturation current reaches **$I_{D,sat} \approx 3.3\text{ mA}$**.
+- **Role:** Serves as the control reference to benchmark both Constant Voltage and Full Scaling.
+
+#### Mode 2: Constant Voltage (CV) Scaling
+- **Model Card:** \`.Model NMOS1 NMOS (VTO=2 kp=200u)\`
+- **Bias Voltages:** Kept identical to baseline ($V_1 = 10\text{V}$, $V_2 = 30\text{V}$) for TTL 5V interface compatibility.
+- **Observed Current:** Saturation current **doubles to $6.6\text{ mA}$** ($I_D' = S \cdot I_D$).
+- **The Problem:** 
+  - Internal electric field increases by $S = 2$ ($E' = S \cdot E$), causing severe hot-carrier degradation and dielectric breakdown.
+  - Power dissipation per transistor doubles ($P' = S \cdot P$).
+  - **Power density explodes by $S^3 = 8\times$**, creating insurmountable thermal dissipation bottlenecks.
+
+#### Mode 3: Full (Constant Electric Field) Dennard Scaling
+- **Model Card:** \`.Model NMOS1 NMOS (VTO=1 kp=200u)\`
+- **Bias Voltages:** Both supply and gate voltages are scaled down by $1/S = 1/2$ ($V_1 = 5\text{V}$, $V_2 = 15\text{V}$, $V_{TO} = 1\text{V}$).
+- **Observed Current:** Saturation current **scales down to $1.6\text{ mA}$** ($I_D' = I_D / S$).
+- **The Advantage:**
+  - Electric field inside the gate oxide remains **strictly constant** ($E' = E$).
+  - Power dissipation per transistor drops to **25%** ($P' = P / S^2$).
+  - **Power density remains constant**, preventing chip overheating and enabling massive integration.`,
     prerequisites: [
       {
         concept: 'Dennard Scaling Hypothesis',
@@ -324,7 +358,7 @@ In the 1980s and early 1990s, industry kept supply voltages fixed at standard 5V
         example: 'Halving oxide thickness doubles Cox and doubles kp from 100u to 200u.'
       }
     ],
-    booleanExpression: '\\text{Full Scaling: } I_D\' = \\frac{I_D}{S}, \\quad P\' = \\frac{P}{S^2}, \\quad \\text{Power Density} = \\text{Constant}',
+    booleanExpression: "Dennard Full Scaling:  I_D' = I_D / S,   P' = P / S²,   Power Density = Constant",
     logicDiagrams: [
       {
         id: 'dvlsi-exp2-diag1',
@@ -529,34 +563,54 @@ V2 n004 0 30
     topic: 'CMOS Bistable Latches & Static Memory Cells',
     aim: 'To construct, model, and simulate a complete CMOS transistor-level cross-coupled Set-Reset (SR) latch in LTspice XVII using 4 PMOS and 4 NMOS transistors, and verify its truth table, state retention, reset dynamics, and invalid state behavior through transient analysis.',
     problemStatement: 'Design a cross-coupled SR latch by implementing two complementary CMOS NOR gates (each with series PMOS pull-up and parallel NMOS pull-down networks). Excite the Set (S) and Reset (R) nodes with asynchronous periodic pulse sources (2ms and 4ms periods) and perform a 10ms transient simulation (.tran 10m) to verify complementary rail-to-rail switching of outputs Q and Q_bar without glitching or invalid state latching.',
-    theory: `The Set-Reset (SR) latch is the most fundamental sequential logic element in digital VLSI design, forming the conceptual basis for flip-flops, static random-access memory (SRAM) cells, and registers.
+    theory: `### 1. Positive Feedback and Bistability in CMOS Latches
 
-### 1. Cross-Coupled Inverting Logic & Bistability
-A latch is constructed by placing two inverting logic stages in a closed positive feedback loop. For an active-HIGH SR latch, two cross-coupled NOR gates are utilized:
-- Output of NOR1 ($Q$) is fed into one input of NOR2.
-- Output of NOR2 ($\\bar{Q}$) is fed into one input of NOR1.
-This positive feedback creates two stable states:
-- **Set State:** $Q = 1$ ($V_{DD}$), $\\bar{Q} = 0$ ($0\\text{V}$)
-- **Reset State:** $Q = 0$ ($0\\text{V}$), $\\bar{Q} = 1$ ($V_{DD}$)
+The Set-Reset (SR) latch is the primary building block of static sequential logic and SRAM memory cells.
 
-### 2. CMOS Transistor-Level Topology
-Each 2-input CMOS NOR gate is composed of:
-1. **Pull-Down Network (PDN):** Two NMOS transistors connected in **parallel** between the output node and Ground. If either gate input is HIGH (1), at least one NMOS turns ON, pulling the output solidly to Ground ($0\\text{V}$).
-2. **Pull-Up Network (PUN):** Two PMOS transistors connected in **series** between the power rail ($V_{DD} = 5\\text{V}$) and the output node. The output can be pulled HIGH to $V_{DD}$ ONLY when BOTH gate inputs are LOW (0), turning both series PMOS transistors ON simultaneously.
+- An active-HIGH latch is formed by **cross-coupling two 2-input NOR gates**.
+- Output $Q$ feeds into one input of the second NOR gate, while complementary output $\bar{Q}$ feeds back into the first NOR gate.
+- This closed positive feedback loop exhibits **two stable operating points**:
+  - **Set State:** $Q = 1\text{ (5V)}$, $\bar{Q} = 0\text{ (0V)}$
+  - **Reset State:** $Q = 0\text{ (0V)}$, $\bar{Q} = 1\text{ (5V)}$
 
-In the complete 8-transistor SR latch schematic:
-- **NOR Gate 1 (Top / Output Q):** Pull-up PMOS pair (M7, M8) in series; Pull-down NMOS pair (M3, M4) in parallel. Input R is applied to M4 and M8. Cross-coupled feedback $\\bar{Q}$ is applied to M3 and M7.
-- **NOR Gate 2 (Bottom / Output $\\bar{Q}$):** Pull-up PMOS pair (M5, M6) in series; Pull-down NMOS pair (M1, M2) in parallel. Input S is applied to M1 and M6. Cross-coupled feedback $Q$ is applied to M2 and M5.
+---
 
-### 3. Operational State Analysis
-1. **Hold / Memory State ($S = 0, R = 0$):**
-   Both external input NMOS transistors (M1 and M4) are turned OFF. The cross-coupled feedback maintains the existing state indefinitely through the opposing inverters. If $Q = 1$, M2 is ON and holds $\\bar{Q} = 0$; $\\bar{Q} = 0$ keeps M7 ON, holding $Q = 1$. Zero static current is consumed.
-2. **Reset State ($S = 0, R = 1$):**
-   Input $R = 1$ turns ON M4, pulling $Q \\to 0\\text{V}$. The $0\\text{V}$ on $Q$ is fed to the second gate, turning ON M5. Since $S = 0$, M6 is also ON. Both series PMOS (M5, M6) conduct, pulling $\\bar{Q} \\to 5\\text{V}$.
-3. **Set State ($S = 1, R = 0$):**
-   Input $S = 1$ turns ON M1, pulling $\\bar{Q} \\to 0\\text{V}$. The $0\\text{V}$ on $\\bar{Q}$ turns ON M7. Since $R = 0$, M8 is also ON. Both series PMOS (M7, M8) conduct, pulling $Q \\to 5\\text{V}$.
-4. **Forbidden / Invalid State ($S = 1, R = 1$):**
-   Both inputs are HIGH simultaneously. M1 and M4 turn ON simultaneously, forcing BOTH $Q = 0$ and $\\bar{Q} = 0$. This violates the definition of complementary outputs ($Q \\ne \\bar{Q}$). Furthermore, if $S$ and $R$ drop to 0 simultaneously, the latch enters a **metastable race condition** where random device mismatch dictates the final settled state.`,
+### 2. CMOS Transistor Topology (8 Transistors Total)
+
+Each 2-input CMOS NOR gate is constructed using:
+1. **Pull-Up Network (PUN):** Two PMOS transistors connected in **series** between the power rail ($V_{DD} = 5\text{V}$) and the output node.
+   - Because PMOS transistors conduct when their gate is LOW (0), both gates must be 0 simultaneously to complete the pull-up path to $5\text{V}$.
+2. **Pull-Down Network (PDN):** Two NMOS transistors connected in **parallel** between the output node and Ground ($0\text{V}$).
+   - If either input is HIGH (1), the corresponding NMOS conducts, pulling the output solidly down to Ground ($0\text{V}$).
+
+In the 8-transistor simulation schematic:
+- **Left NOR Stage:** PMOS series pair ($M_6, M_5$) + NMOS parallel pair ($M_1, M_2$) produces output $\bar{Q} = V(n006)$.
+- **Right NOR Stage:** PMOS series pair ($M_8, M_7$) + NMOS parallel pair ($M_4, M_3$) produces output $Q = V(n008)$.
+
+---
+
+### 3. Step-by-Step State Analysis
+
+#### State 1: Hold / Memory State (S = 0, R = 0)
+- Both external input transistors ($M_1$ and $M_4$) remain OFF.
+- The internal feedback maintains the stored bit indefinitely.
+- If previously Set ($Q=1$), NMOS $M_2$ holds $\bar{Q}=0$, keeping PMOS $M_7$ ON and sustaining $Q=1$ with zero static current.
+
+#### State 2: Reset State (S = 0, R = 1)
+- Input $R = 1$ turns ON NMOS $M_4$, pulling Output $Q \to 0\text{V}$.
+- The $0\text{V}$ on $Q$ turns ON PMOS $M_5$. Since $S=0$, $M_6$ is also ON.
+- The series PMOS pair ($M_5, M_6$) pulls Output $\bar{Q} \to 5\text{V}$.
+
+#### State 3: Set State (S = 1, R = 0)
+- Input $S = 1$ turns ON NMOS $M_1$, pulling Output $\bar{Q} \to 0\text{V}$.
+- The $0\text{V}$ on $\bar{Q}$ turns ON PMOS $M_7$. Since $R=0$, $M_8$ is also ON.
+- The series PMOS pair ($M_7, M_8$) pulls Output $Q \to 5\text{V}$.
+
+#### State 4: Forbidden / Invalid State (S = 1, R = 1)
+- Both $S$ and $R$ inputs are driven HIGH simultaneously.
+- NMOS transistors $M_1$ and $M_4$ both turn ON, forcing **both $Q = 0\text{V}$ and $\bar{Q} = 0\text{V}$**.
+- This breaks the fundamental logic requirement that $Q$ and $\bar{Q}$ must be strictly complementary.
+- If $S$ and $R$ return to 0 simultaneously, device mismatch induces **metastability**, causing an unpredictable latch outcome.`,
     prerequisites: [
       {
         concept: 'Bistable Multivibrator Principle',
@@ -574,7 +628,7 @@ In the complete 8-transistor SR latch schematic:
         example: 'PULSE(0 5 0 0 0 1m 2m) creates a 0-5V pulse with 1ms pulse width and 2ms period.'
       }
     ],
-    booleanExpression: 'Q_{next} = \\overline{R + \\bar{Q}} = S + \\bar{R} \\cdot Q \\quad (\\text{Valid for } S \\cdot R = 0)',
+    booleanExpression: "Q(t+1) = NOR(R, Q_bar) = S + R' · Q   [Characteristic SR Equation, valid for S · R = 0]",
     truthTable: {
       title: 'CMOS NOR-based SR Latch Complete State Transition Table',
       headers: ['S (Set)', 'R (Reset)', 'Q(t+1)', 'Q_bar(t+1)', 'Operational State', 'Internal Transistor Switching State'],
@@ -784,39 +838,55 @@ V3 n002 0 PULSE(0 5 0 0 0 2m 4m)  ; Reset Input (R)
     topic: 'Resistive-Load Inverters & Logic Swing Analysis',
     aim: 'To design, simulate, and analyze an NMOS inverter with a passive resistive pull-up load (R_L = 1000kΩ = 1 MΩ) in LTspice XVII, capturing its DC Voltage Transfer Characteristic (VTC) curve, calculating critical voltages (V_OH, V_OL, V_IL, V_IH) and noise margins, and evaluating transient switching delay asymmetry.',
     problemStatement: 'Construct a resistive-load NMOS inverter using driver NMOS M1, pull-up resistor R1 = 1000kΩ, and supply rail V2 = 3.3V. Perform a DC voltage sweep (.dc v1 0 3.3 0.5) to capture the static VTC curve, followed by a transient simulation (.tran 0 5m 0) excited by a 2ms square pulse train (V1) to examine pull-up RC charging delay vs. fast NMOS pull-down discharging.',
-    theory: `The resistive-load inverter represents the earliest form of NMOS digital logic. Analyzing its behavior provides foundational insights into ratioed logic, noise margins, and why complementary CMOS ultimately replaced passive-load designs.
+    theory: `### 1. Circuit Architecture and Operational Concept
 
-### 1. Circuit Topology & Inverter Operation
-The circuit consists of:
-- **Driver Device:** An N-channel MOSFET (M1) with its source connected to Ground and its gate receiving input voltage $V_{in} = V_1$.
-- **Load Device:** A passive resistor $R_1 = 1000\\text{k}\\Omega$ ($1\\text{ M}\\Omega$) connected between the power supply $V_{DD} = 3.3\\text{V}$ and the drain output node $V_{out} = V(\\text{n001})$.
+The resistive-load inverter represents the historical foundation of NMOS static logic circuits.
 
-### 2. Operational Regions Across the DC Transfer Curve (VTC)
-1. **Region 1: Cutoff ($0 \\le V_{in} < V_{TH}$):**
-   When the input is below the NMOS threshold voltage ($V_{in} < \\approx 0.5\\text{V}$), M1 is completely OFF ($I_D = 0$). No current flows through load resistor $R_1$, resulting in zero IR voltage drop ($V_{R1} = 0$). The output pulls up to the full supply rail:
-   $$V_{out} = V_{OH} = V_{DD} = 3.3\\text{V}$$
-2. **Region 2: Saturation Transition ($V_{in} \\ge V_{TH}$ and $V_{out} \\ge V_{in} - V_{TH}$):**
-   As $V_{in}$ rises past $V_{TH}$, M1 turns ON and operates in saturation. The drain current follows the square-law equation:
-   $$I_D = \\frac{1}{2} k_n (V_{in} - V_{TH})^2$$
-   Applying Kirchhoff's Current Law (KCL) at the output node:
-   $$V_{out} = V_{DD} - I_D R_1 = V_{DD} - \\frac{1}{2} k_n R_1 (V_{in} - V_{TH})^2$$
-   This causes a steep quadratic drop in $V_{out}$ as $V_{in}$ increases from $0.5\\text{V}$ to $1.2\\text{V}$.
-3. **Region 3: Linear / Triode ($V_{in} > V_{TH}$ and $V_{out} < V_{in} - V_{TH}$):**
-   When $V_{in}$ reaches logic HIGH ($3.3\\text{V}$), $V_{out}$ drops below $V_{in} - V_{TH}$, forcing M1 into the linear region. M1 acts as a small channel resistance $R_{on}$. The output voltage is determined by a resistive voltage divider between $R_1$ and $R_{on}$:
-   $$V_{OL} = V_{DD} \\times \\frac{R_{on}}{R_1 + R_{on}}$$
-   Because $R_{on} > 0$, **$V_{OL}$ is non-zero** (approximately $0.05\\text{V}$ to $0.1\\text{V}$ in the simulation). This is the hallmark of **ratioed logic**.
+The circuit comprises:
+- **Driver Transistor ($M_1$):** An N-channel enhancement MOSFET whose source connects to Ground and gate serves as the signal input $V_{in} = V_1$.
+- **Passive Pull-Up Resistor ($R_1$):** A $1000\text{ k}\Omega$ ($1\text{ M}\Omega$) resistor connected between supply rail $V_{DD} = 3.3\text{V}$ and the drain output node $V_{out} = V(n001)$.
 
-### 3. Transient Switching Asymmetry
-In transient simulation (\`.tran 0 5m 0\`):
-- **High-to-Low Transition (Falling Edge):** When $V_{in}$ steps from 0V to 3.3V, M1 turns ON strongly, providing a large discharge current that rapidly drains the load capacitance $C_L$ to ground. The fall time $t_f$ is very fast.
-- **Low-to-High Transition (Rising Edge):** When $V_{in}$ steps from 3.3V to 0V, M1 turns OFF completely. The load capacitance $C_L$ must charge exclusively through the large $1\\text{ M}\\Omega$ resistor from $V_{DD}$. The charging equation follows an exponential RC curve:
-  $$V_{out}(t) = V_{DD} \\left(1 - e^{-t / (R_1 C_L)}\right)$$
-  Because $R_1 = 1\\text{ M}\\Omega$ is large, the charging time constant $\\tau = R_1 C_L$ causes a noticeably rounded exponential rise edge.
+---
 
-### 4. Static Power Penalty
-When $V_{in} = 3.3\\text{V}$ (Output LOW), current flows continuously from $V_{DD}$ through $R_1$ and M1 to ground:
-$$P_{static} = \\frac{V_{DD}^2}{R_1 + R_{on}} \\approx \\frac{(3.3)^2}{10^6} \\approx 10.9\\,\\mu\\text{W per gate}$$
-In an integrated circuit with millions of gates, this continuous static power dissipation creates an unacceptable thermal bottleneck.`,
+### 2. Operational Regimes Across the DC Transfer Curve (VTC)
+
+#### Region 1: Cutoff Mode (Vin < 0.5V)
+- **Transistor State:** Input voltage is below the driver threshold ($V_{in} < V_{TH} \approx 0.5\text{V}$). Driver $M_1$ is completely OFF ($I_D = 0$).
+- **Output Voltage:** With zero current flowing through $R_1$, there is zero voltage drop across the resistor.
+- **Resulting Level:** Output pulls up to the full positive rail:
+  $$V_{OH} = V_{DD} = 3.3\text{V}$$
+
+#### Region 2: Saturation Transition (0.5V ≤ Vin < 1.2V)
+- **Transistor State:** Driver $M_1$ turns ON and operates in the saturation region ($V_{DS} \ge V_{in} - V_{TH}$).
+- **Drain Current:** Follows the square-law relation:
+  $$I_D = \frac{1}{2} \cdot k_n \cdot (V_{in} - V_{TH})^2$$
+- **Output Characteristic:** Output voltage drops steeply according to:
+  $$V_{out} = V_{DD} - I_D \cdot R_1$$
+
+#### Region 3: Linear / Triode Mode (Vin ≥ 1.2V up to 3.3V)
+- **Transistor State:** As $V_{out}$ drops below $V_{in} - V_{TH}$, $M_1$ enters the linear region, acting as an on-state channel resistance $R_{on}$.
+- **Output Low Voltage (VOL):** The output forms a resistive voltage divider:
+  $$V_{OL} = V_{DD} \cdot \left[ \frac{R_{on}}{R_1 + R_{on}} \right]$$
+- **Ratioed Logic Consequence:** Because $R_{on} > 0$, **$V_{OL}$ is non-zero ($\approx 0.08\text{V}$)**.
+
+---
+
+### 3. Transient Asymmetry and Static Power Penalty
+
+#### Falling Edge (Fast NMOS Discharge)
+- When $V_{in}$ steps HIGH ($0\text{V} \to 3.3\text{V}$), $M_1$ turns ON strongly.
+- Provides a high-conductance path that discharges load capacitance $C_L$ rapidly to ground with minimal fall time ($t_f$).
+
+#### Rising Edge (Slow RC Charging)
+- When $V_{in}$ steps LOW ($3.3\text{V} \to 0\text{V}$), $M_1$ turns OFF.
+- Load capacitance must charge exclusively through the large $1000\text{ k}\Omega$ pull-up resistor.
+- The charging curve follows:
+  $$V_{out}(t) = V_{DD} \cdot \left(1 - e^{-t / (R_1 \cdot C_L)}\right)$$
+  resulting in a slow, rounded exponential rise edge.
+
+#### Continuous Static Power Dissipation
+- Whenever output is LOW ($V_{in} = 3.3\text{V}$), current flows continuously from $V_{DD}$ to Ground:
+  $$P_{static} = \frac{V_{DD}^2}{R_1 + R_{on}} \approx \frac{(3.3)^2}{10^6} \approx 10.9\,\mu\text{W}$$`,
     prerequisites: [
       {
         concept: 'Ratioed Logic Concept',
@@ -829,7 +899,7 @@ In an integrated circuit with millions of gates, this continuous static power di
         example: 'Higher noise margins prevent spurious logic flipping in noisy digital environments.'
       }
     ],
-    booleanExpression: 'V_{out} = V_{DD} - I_D(V_{in}) \\cdot R_1, \\quad V_{OL} = V_{DD} \\frac{R_{on}}{R_1 + R_{on}} \\approx 0.08\\text{V}',
+    booleanExpression: "V_out = V_DD - [I_D(V_in) · R_1]   |   V_OL = V_DD · [R_on / (R_1 + R_on)] ≈ 0.08V",
     logicDiagrams: [
       {
         id: 'dvlsi-exp4-diag1',
@@ -998,38 +1068,62 @@ V1 n003 0 PULSE(0 3.3 0 0 0 1m 2m)
     topic: 'Static & Dynamic CMOS Inverter Characteristics',
     aim: 'To design, simulate, and characterize a complementary CMOS inverter in LTspice XVII, mapping out its DC Voltage Transfer Characteristic (VTC), identifying the five operating regions of PMOS and NMOS transistors, observing the short-circuit supply current peak at switching midpoint V_M, and evaluating transient switching propagation delays.',
     problemStatement: 'Construct a CMOS inverter using a PMOS pull-up transistor (M2) and an NMOS pull-down transistor (M1) connected to a 5.0V supply rail. Perform a high-resolution DC sweep (.dc v1 0 5 0.1) simultaneously plotting output voltage V(n003) and supply current Is(M2). Perform transient analysis (.tran 0 5MS 0) with a 2ms pulse input to verify full rail-to-rail logic swing and zero static quiescent current.',
-    theory: `The complementary CMOS inverter is the foundational cell of modern digital integrated circuit design. It achieves virtually ideal digital switching characteristics: infinite input impedance, full rail-to-rail logic swing, zero static power dissipation, and high noise immunity.
+    theory: `### 1. Complementary CMOS Architecture
 
-### 1. Complementary Transistor Architecture
-The CMOS inverter pairs an N-channel MOSFET (NMOS M1) in the pull-down path with a P-channel MOSFET (PMOS M2) in the pull-up path:
-- Gates are tied together to form common input $V_{in} = V_1$.
-- Drains are tied together to form common output $V_{out} = V(\\text{n003})$.
-- Source of PMOS M2 connects to power rail $V_{DD} = 5.0\\text{V}$.
-- Source of NMOS M1 connects to Ground ($0.0\\text{V}$).
+The CMOS inverter is the universal benchmark circuit of digital VLSI technology.
 
-### 2. The Five Operational Regions Across the VTC
-As input voltage $V_{in}$ sweeps from $0\\text{V}$ to $5\\text{V}$, the operating states of both transistors transition through five distinct regions:
+- **Pull-Up Network:** PMOS transistor ($M_2$) with Source connected to $V_{DD} = 5.0\text{V}$.
+- **Pull-Down Network:** NMOS transistor ($M_1$) with Source connected to Ground ($0\text{V}$).
+- Common Gate input $V_{in} = V_1$; common Drain output node $V_{out} = V(n003)$.
 
-| Region | Input Range ($V_{in}$) | NMOS (M1) State | PMOS (M2) State | Output Voltage ($V_{out}$) | Supply Current ($I_{DD}$) |
-|---|---|---|---|---|---|
-| **Region A** | $V_{in} < V_{TH,n}$ ($0$ to $0.8\\text{V}$) | **CUTOFF** ($I_{Dn} = 0$) | **LINEAR** ($V_{DSp} \\approx 0$) | $V_{OH} = V_{DD} = 5.0\\text{V}$ | $0\\,\\mu\\text{A}$ (Zero static current) |
-| **Region B** | $V_{TH,n} \\le V_{in} < V_M$ ($0.8$ to $2.3\\text{V}$) | **SATURATION** ($V_{DSn} > V_{GSn} - V_{THn}$) | **LINEAR** ($|V_{DSp}| < |V_{GSp}| - |V_{THp}|$) | High, falling gently | Increasing ($0$ to $40\\,\\mu\\text{A}$) |
-| **Region C** | $V_{in} \\approx V_M = 2.5\\text{V}$ (Midpoint) | **SATURATION** | **SATURATION** | Sharp drop from $4.0\\text{V}$ to $1.0\\text{V}$ | **Peak: $\\approx 64\\,\\mu\\text{A}$** (Short-circuit peak) |
-| **Region D** | $V_M < V_{in} \\le V_{DD} - |V_{TH,p}|$ ($2.7$ to $4.2\\text{V}$) | **LINEAR** ($V_{DSn} < V_{GSn} - V_{THn}$) | **SATURATION** ($|V_{DSp}| > |V_{GSp}| - |V_{THp}|$) | Low, falling gently | Decreasing ($40$ to $0\\,\\mu\\text{A}$) |
-| **Region E** | $V_{in} > V_{DD} - |V_{TH,p}|$ ($4.2$ to $5.0\\text{V}$) | **LINEAR** ($V_{DSn} \\approx 0$) | **CUTOFF** ($I_{Dp} = 0$) | $V_{OL} = 0.0\\text{V}$ | $0\\,\\mu\\text{A}$ (Zero static current) |
+---
 
-### 3. Supply Current Peak & Power Dissipation
-The blue curve $I_s(M2)$ in the LTspice simulation captures the current drawn from $V_{DD}$:
-- In **Region A** ($V_{in} = 0\\text{V}$), NMOS is OFF $\\implies I_{stat} = 0$.
-- In **Region E** ($V_{in} = 5\\text{V}$), PMOS is OFF $\\implies I_{stat} = 0$.
-- In **Region C** ($V_{in} \\approx 2.5\\text{V}$), both PMOS and NMOS conduct simultaneously, creating a direct path between $V_{DD}$ and Ground. This produces a transient short-circuit current spike peaking at **$64\\,\\mu\\text{A}$**.
-Because current flows ONLY during switching transitions, the total power dissipation of CMOS logic is overwhelmingly dynamic:
-$$P_{total} = P_{dynamic} + P_{short-circuit} + P_{leakage} \\approx \\alpha C_L V_{DD}^2 f$$
+### 2. The Five Operating Regions Across the VTC
 
-### 4. Ideal Rail-to-Rail Logic Swing & High Noise Margins
-Unlike ratioed NMOS logic, the CMOS inverter output pulls completely to the positive rail ($V_{OH} = 5.0\\text{V}$) and completely to ground ($V_{OL} = 0.0\\text{V}$). This yields the maximum possible voltage swing:
-$$V_{swing} = V_{OH} - V_{OL} = 5.0\\text{V} - 0.0\\text{V} = 5.0\\text{V}$$
-With symmetric sizing ($k_n = k_p$), the switching threshold is centered at $V_M = V_{DD} / 2 = 2.5\\text{V}$, providing equal and exceptionally wide noise margins ($NM_H \\approx NM_L \\approx 2.0\\text{V}$).`,
+#### Region A: Input Low (Vin < VTH,n: 0.0V to 0.8V)
+- **NMOS ($M_1$):** **CUTOFF** ($V_{GS,n} < V_{TH,n} \implies I_{Dn} = 0$).
+- **PMOS ($M_2$):** **LINEAR** ($|V_{GS,p}| = 5\text{V}$, $|V_{DS,p}| \approx 0\text{V}$).
+- **Output:** Pulled fully to the positive rail:
+  $$V_{out} = V_{OH} = V_{DD} = 5.0\text{V}$$
+- **Static Current:** Exactly zero ($I_{DD} = 0\,\mu\text{A}$).
+
+#### Region B: Moderate Pull-Down (0.8V ≤ Vin < 2.3V)
+- **NMOS ($M_1$):** Enters **SATURATION** ($V_{DS,n} > V_{GS,n} - V_{TH,n}$).
+- **PMOS ($M_2$):** Remains in **LINEAR** ($|V_{DS,p}| < |V_{GS,p}| - |V_{TH,p}|$).
+- **Output:** Falls smoothly from $5.0\text{V}$ towards $4.0\text{V}$.
+- **Current:** Current begins to rise ($0$ to $40\,\mu\text{A}$).
+
+#### Region C: Switching Threshold (Vin ≈ VM = 2.5V)
+- **Transistor States:** **BOTH NMOS and PMOS operate simultaneously in SATURATION**.
+- **Voltage Gain:** Extremely high open-loop slope ($|dV_{out} / dV_{in}| \gg 1$), producing an almost vertical drop from $4.0\text{V}$ to $1.0\text{V}$.
+- **Dynamic Current Spike:** A low-impedance path opens momentarily from $V_{DD}$ to Ground, producing a **peak short-circuit current of $64\,\mu\text{A}$**.
+- **Switching Midpoint ($V_M$):**
+  $$V_M \approx \frac{V_{DD}}{2} = 2.5\text{V} \quad (\text{for symmetric sizing } k_n = k_p)$$
+
+#### Region D: Moderate Pull-Up (2.7V < Vin ≤ 4.2V)
+- **NMOS ($M_1$):** Enters **LINEAR** ($V_{DS,n} < V_{GS,n} - V_{TH,n}$).
+- **PMOS ($M_2$):** Enters **SATURATION** ($|V_{DS,p}| > |V_{GS,p}| - |V_{TH,p}|$).
+- **Output:** Decreases smoothly towards $0.5\text{V}$.
+- **Current:** Current falls back from $40\,\mu\text{A}$ towards zero.
+
+#### Region E: Input High (Vin > 4.2V up to 5.0V)
+- **NMOS ($M_1$):** **LINEAR** (strong conducting channel).
+- **PMOS ($M_2$):** **CUTOFF** ($|V_{GS,p}| < |V_{TH,p}| \implies I_{Dp} = 0$).
+- **Output:** Pulled solidly down to Ground:
+  $$V_{out} = V_{OL} = 0.0\text{V}$$
+- **Static Current:** Exactly zero ($I_{DD} = 0\,\mu\text{A}$).
+
+---
+
+### 3. Key Performance Advantages of CMOS
+
+1. **Zero Static Power Dissipation:**
+   In both stable states ($V_{in}=0\text{V}$ or $V_{in}=5\text{V}$), one transistor is completely OFF. Current flows only during input switching transitions.
+2. **Full Rail-to-Rail Logic Swing:**
+   $$V_{swing} = V_{OH} - V_{OL} = 5.0\text{V} - 0.0\text{V} = 5.0\text{V}$$
+3. **High Noise Immunity:**
+   Symmetric switching provides equal and robust noise margins:
+   $$NM_H = V_{OH} - V_{IH} = 2.10\text{V}, \quad NM_L = V_{IL} - V_{OL} = 2.10\text{V}$$`,
     prerequisites: [
       {
         concept: 'Complementary MOS Principle',
@@ -1047,7 +1141,7 @@ With symmetric sizing ($k_n = k_p$), the switching threshold is centered at $V_M
         example: 'Visible as the blue triangular peak reaching 64µA in Figure 5.1.'
       }
     ],
-    booleanExpression: 'V_{out} = \\overline{V_{in}}, \\quad V_M = \\frac{V_{TH,n} + \\sqrt{\\frac{k_p}{k_n}} (V_{DD} - |V_{TH,p}|)}{1 + \\sqrt{\\frac{k_p}{k_n}}} \\approx \\frac{V_{DD}}{2}',
+    booleanExpression: "V_out = NOT(V_in)   |   Symmetric Midpoint: V_M ≈ V_DD / 2 = 2.5V   |   Swing: 0V ↔ 5V",
     logicDiagrams: [
       {
         id: 'dvlsi-exp5-diag1',

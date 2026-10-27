@@ -1,5 +1,6 @@
 import type { Subject } from '../types';
 import { DSA_EXPERIMENTS, DSA_QUESTION_BANK } from './dsaExperiments';
+import { DVLSI_EXPERIMENTS, DVLSI_QUESTION_BANK } from './dvlsiExperiments';
 
 export const INITIAL_SUBJECTS: Subject[] = [
   {
@@ -265,127 +266,11 @@ HLT            ; Stop execution`
     id: 'dvlsi',
     name: 'Digital VLSI Design',
     shortCode: 'DVLSI',
-    description: 'Digital VLSI laboratory experiments: Verilog HDL modeling, CMOS logic gates, combinational and sequential circuits, truth tables, and simulation waveforms.',
+    description: 'Digital VLSI & CMOS circuit design laboratory: MOSFET drain/transfer characteristics, Dennard scaling analysis, cross-coupled CMOS SR latch, NMOS resistive inverter, and CMOS inverter VTC & transient dynamics simulated in LTspice XVII.',
     iconName: 'Cpu',
     accentColor: '#8b5cf6',
     isConfirmedName: true,
-    experiments: [
-      {
-        id: 'dvlsi-exp-1',
-        subjectId: 'dvlsi',
-        expNumber: 1,
-        title: 'Design and Simulation of 4-to-1 Multiplexer (MUX)',
-        topic: 'Combinational Logic',
-        chapter: 'Multiplexers & Data Routing',
-        aim: 'To design, model, and simulate a 4-to-1 Multiplexer using behavioral and dataflow modeling in Verilog HDL.',
-        theory: 'A Multiplexer (MUX) is a combinational circuit that selects binary information from one of several input lines and routes it to a single output line. A 4-to-1 MUX has 4 data inputs (I0, I1, I2, I3), 2 select lines (S1, S0), and 1 output (Y). The output is determined by the binary combination of the select inputs.',
-        booleanExpression: 'Y = (~S1 & ~S0 & I0) | (~S1 & S0 & I1) | (S1 & ~S0 & I2) | (S1 & S0 & I3)',
-        truthTable: {
-          headers: ['Select S1', 'Select S0', 'Selected Output Y'],
-          rows: [
-            ['0', '0', 'I0'],
-            ['0', '1', 'I1'],
-            ['1', '0', 'I2'],
-            ['1', '1', 'I3']
-          ]
-        },
-        codeSnippets: [
-          {
-            language: 'verilog',
-            filename: 'mux4to1.v',
-            explanation: 'Behavioral Verilog description with always block triggered on sensitivity list changes.',
-            code: `// 4-to-1 Multiplexer Behavioral Model
-module mux4to1 (
-    input wire [3:0] in,      // 4 input lines (I3, I2, I1, I0)
-    input wire [1:0] sel,     // 2 select lines (S1, S0)
-    output reg out            // Multiplexed output
-);
-
-always @(*) begin
-    case (sel)
-        2'b00: out = in[0];
-        2'b01: out = in[1];
-        2'b10: out = in[2];
-        2'b11: out = in[3];
-        default: out = 1'b0;
-    endcase
-end
-
-endmodule
-
-// Testbench for 4-to-1 Multiplexer
-module mux4to1_tb;
-    reg [3:0] in;
-    reg [1:0] sel;
-    wire out;
-
-    mux4to1 uut (
-        .in(in),
-        .sel(sel),
-        .out(out)
-    );
-
-    initial begin
-        $dumpfile("mux4to1.vcd");
-        $dumpvars(0, mux4to1_tb);
-
-        in = 4'b1010; // I3=1, I2=0, I1=1, I0=0
-
-        sel = 2'b00; #10; // Expect out = 0 (I0)
-        sel = 2'b01; #10; // Expect out = 1 (I1)
-        sel = 2'b10; #10; // Expect out = 0 (I2)
-        sel = 2'b11; #10; // Expect out = 1 (I3)
-
-        $finish;
-    end
-endmodule`
-          }
-        ],
-        sampleInput: 'Data Inputs: in = 4\'b1010; Select sequence: 00, 01, 10, 11',
-        sampleOutput: 'Time 0ns: sel=00 -> out=0\nTime 10ns: sel=01 -> out=1\nTime 20ns: sel=10 -> out=0\nTime 30ns: sel=11 -> out=1',
-        result: 'The 4-to-1 Multiplexer was designed and verified using Verilog testbench simulation without timing discrepancies.',
-        conclusion: 'The case statement effectively captures multiplexing behavior and synthesizes cleanly into standard digital multiplexer cells.',
-        vivaQuestions: [
-          {
-            id: 'dvlsi-viva-1-1',
-            questionNumber: 1,
-            subjectId: 'dvlsi',
-            experimentId: 'dvlsi-exp-1',
-            question: 'What is the difference between blocking (=) and non-blocking (<=) procedural assignments in Verilog?',
-            answer: 'Blocking assignments (=) execute sequentially and block the execution of subsequent statements until the assignment finishes, suitable for combinational logic. Non-blocking assignments (<=) evaluate concurrently at the end of the simulation time step, preventing race conditions in sequential (clocked) logic.',
-            category: 'viva'
-          },
-          {
-            id: 'dvlsi-viva-1-2',
-            questionNumber: 2,
-            subjectId: 'dvlsi',
-            experimentId: 'dvlsi-exp-1',
-            question: 'How many 2-to-1 multiplexers are required to construct a 4-to-1 multiplexer?',
-            answer: 'Three 2-to-1 multiplexers are required. Two at the first stage select between (I0, I1) and (I2, I3) controlled by S0, and one at the second stage selects between their outputs controlled by S1.',
-            category: 'viva'
-          }
-        ],
-        postExpQuestions: [
-          {
-            id: 'dvlsi-post-1-1',
-            questionNumber: 1,
-            subjectId: 'dvlsi',
-            experimentId: 'dvlsi-exp-1',
-            question: 'Can a multiplexer be used as a universal logic generator? Explain briefly.',
-            answer: 'Yes. An 2^N to 1 multiplexer can implement any Boolean function of N + 1 variables by connecting N variables to the select inputs and connecting the remaining variable or constant values (0, 1) to the data inputs.',
-            category: 'post-lab'
-          }
-        ]
-      }
-    ],
-    questionBank: [
-      {
-        id: 'dvlsi-qb-1',
-        subjectId: 'dvlsi',
-        question: 'Explain the concept of Setup Time and Hold Time in digital flip-flops.',
-        answer: 'Setup time (t_setup) is the minimum duration the data input must remain stable before the arrival of the active clock edge. Hold time (t_hold) is the minimum duration the data input must remain stable after the active clock edge. Violating either causes metastability in the flip-flop output.',
-        category: 'theory'
-      }
-    ]
+    experiments: DVLSI_EXPERIMENTS,
+    questionBank: DVLSI_QUESTION_BANK
   }
 ];

@@ -2,7 +2,7 @@ import type { UserProgress, Subject } from '../types';
 
 const PROGRESS_KEY = 'studycode_progress_v1';
 const SITE_TITLE_KEY = 'studycode_site_title_v1';
-const CUSTOM_SUBJECTS_KEY = 'studycode_custom_subjects_v1';
+const CUSTOM_SUBJECTS_KEY = 'studycode_custom_subjects_v2';
 const THEME_KEY = 'studycode_theme_v1';
 
 export type ThemeMode = 'light' | 'dark';

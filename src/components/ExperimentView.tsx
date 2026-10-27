@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -16,7 +16,18 @@ import {
   ListOrdered,
   BookOpen,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  Cpu,
+  Activity,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
+  X,
+  Layers,
+  Settings,
+  ShieldCheck,
+  Binary
 } from 'lucide-react';
 import type { Experiment, Subject } from '../types';
 import { CodeBlock } from './CodeBlock';
@@ -36,6 +47,12 @@ interface ExperimentViewProps {
   bookmarkedIds: string[];
 }
 
+interface ImageModalState {
+  url: string;
+  caption: string;
+  title: string;
+}
+
 export const ExperimentView: React.FC<ExperimentViewProps> = ({
   experiment,
   subject,
@@ -49,6 +66,8 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
   bookmarkedIds,
 }) => {
   const [activeSection, setActiveSection] = useState<string>('aim');
+  const [modalImage, setModalImage] = useState<ImageModalState | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   const currentIndex = subject.experiments.findIndex((e) => e.id === experiment.id);
   const prevExp = currentIndex > 0 ? subject.experiments[currentIndex - 1] : null;
@@ -62,16 +81,165 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
     exportExperimentPdf(experiment, subject);
   };
 
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalImage) {
+        setModalImage(null);
+        setZoomLevel(1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalImage]);
+
+  const openImageModal = (url: string, caption: string, title: string) => {
+    setModalImage({ url, caption, title });
+    setZoomLevel(1);
+  };
+
+  // Helper to parse markdown text with math blocks and bolding
+  const renderFormattedTheory = (theoryText: string) => {
+    const paragraphs = theoryText.split('\n\n');
+
+    return (
+      <div className="space-y-4 text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+        {paragraphs.map((p, pIdx) => {
+          const trimmed = p.trim();
+          if (!trimmed) return null;
+
+          // H3 Heading
+          if (trimmed.startsWith('### ')) {
+            return (
+              <h3 key={pIdx} className="text-sm md:text-base font-bold text-slate-900 dark:text-white pt-2 border-b border-slate-100 dark:border-[#1e293b] pb-1 font-mono flex items-center gap-2">
+                <span className="w-1.5 h-3.5 bg-blue-600 rounded-sm"></span>
+                {trimmed.replace('### ', '')}
+              </h3>
+            );
+          }
+
+          // Math display block ($$ ... $$)
+          if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
+            const math = trimmed.slice(2, -2).trim();
+            return (
+              <div
+                key={pIdx}
+                className="my-3 p-3.5 rounded-xl bg-blue-50/70 dark:bg-[#162238] border border-blue-200 dark:border-blue-900/60 font-mono text-center text-xs md:text-sm text-blue-950 dark:text-blue-200 overflow-x-auto shadow-inner"
+              >
+                {math}
+              </div>
+            );
+          }
+
+          // Markdown Table
+          if (trimmed.startsWith('|') && trimmed.includes('\n|')) {
+            const lines = trimmed.split('\n').filter((l) => l.trim().startsWith('|'));
+            if (lines.length >= 3) {
+              const headers = lines[0]
+                .split('|')
+                .filter((_, i, arr) => i > 0 && i < arr.length - 1)
+                .map((h) => h.trim());
+              const rows = lines.slice(2).map((rowLine) =>
+                rowLine
+                  .split('|')
+                  .filter((_, i, arr) => i > 0 && i < arr.length - 1)
+                  .map((c) => c.trim())
+              );
+
+              return (
+                <div key={pIdx} className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#1f293d] my-3">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
+                      <tr>
+                        {headers.map((h, hIdx) => (
+                          <th key={hIdx} className="px-3.5 py-2.5">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-[#1f293d] bg-white dark:bg-[#0c0d12]">
+                      {rows.map((row, rIdx) => (
+                        <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-[#111827]">
+                          {row.map((cell, cIdx) => (
+                            <td key={cIdx} className="px-3.5 py-2 text-slate-700 dark:text-slate-300">
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            }
+          }
+
+          // Bullet list items
+          if (trimmed.startsWith('1. ') || trimmed.startsWith('2. ') || trimmed.startsWith('3. ') || trimmed.startsWith('4. ') || trimmed.startsWith('5. ') || trimmed.startsWith('- ')) {
+            const listItems = trimmed.split('\n');
+            return (
+              <ul key={pIdx} className="space-y-2 pl-2">
+                {listItems.map((item, iIdx) => {
+                  const cleaned = item.replace(/^[0-9]+\.\s+/, '').replace(/^-\s+/, '');
+                  const parts = cleaned.split(/(\*\*.*?\*\*|\$.*?\$)/g);
+                  return (
+                    <li key={iIdx} className="flex items-start gap-2 text-xs md:text-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                      <div>
+                        {parts.map((seg, sIdx) => {
+                          if (seg.startsWith('**') && seg.endsWith('**')) {
+                            return <strong key={sIdx} className="font-semibold text-slate-900 dark:text-white">{seg.slice(2, -2)}</strong>;
+                          }
+                          if (seg.startsWith('$') && seg.endsWith('$')) {
+                            return <code key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#182234] font-mono text-xs text-blue-700 dark:text-blue-300">{seg.slice(1, -1)}</code>;
+                          }
+                          return seg;
+                        })}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          }
+
+          // Standard paragraph with bold/code segments
+          const parts = trimmed.split(/(\*\*.*?\*\*|\$.*?\$)/g);
+          return (
+            <p key={pIdx} className="leading-relaxed">
+              {parts.map((seg, sIdx) => {
+                if (seg.startsWith('**') && seg.endsWith('**')) {
+                  return <strong key={sIdx} className="font-semibold text-slate-900 dark:text-white">{seg.slice(2, -2)}</strong>;
+                }
+                if (seg.startsWith('$') && seg.endsWith('$')) {
+                  return <code key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#182234] font-mono text-xs text-blue-700 dark:text-blue-300">{seg.slice(1, -1)}</code>;
+                }
+                return seg;
+              })}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Table of Contents anchor links
   const tocSections = [
     { id: 'sec-aim', label: 'Aim & Overview' },
+    ...(experiment.theory ? [{ id: 'sec-theory', label: 'Theory & Physics' }] : []),
     ...(experiment.prerequisites && experiment.prerequisites.length > 0 ? [{ id: 'sec-prereq', label: 'Prerequisites' }] : []),
-    ...(experiment.algorithm ? [{ id: 'sec-algo', label: 'Algorithm' }] : []),
-    { id: 'sec-code', label: 'Source Code' },
+    ...(experiment.logicDiagrams && experiment.logicDiagrams.length > 0 ? [{ id: 'sec-schematic', label: 'Circuit Schematics' }] : []),
+    ...(experiment.truthTable ? [{ id: 'sec-truthtable', label: 'Truth Table' }] : []),
+    ...(experiment.algorithm && experiment.algorithm.length > 0 ? [{ id: 'sec-algo', label: 'Algorithm / Procedure' }] : []),
+    ...(experiment.simulationSetup ? [{ id: 'sec-simsetup', label: 'Simulation Setup' }] : []),
+    ...(experiment.waveforms && experiment.waveforms.length > 0 ? [{ id: 'sec-waveforms', label: 'Waveform Analysis' }] : []),
+    ...(experiment.observationTable ? [{ id: 'sec-observation', label: 'Observation Table' }] : []),
+    ...(experiment.codeSnippets && experiment.codeSnippets.length > 0 ? [{ id: 'sec-code', label: 'Netlist / Source Code' }] : []),
     ...(experiment.lineByLineExplanation && experiment.lineByLineExplanation.length > 0 ? [{ id: 'sec-linebyline', label: 'Code Breakdown' }] : []),
     ...(experiment.dryRun ? [{ id: 'sec-dryrun', label: 'Dry Run' }] : []),
-    { id: 'sec-io', label: 'Sample I/O' },
-    { id: 'sec-complexity', label: 'Complexity' },
+    ...((experiment.sampleInput || experiment.sampleOutput) ? [{ id: 'sec-io', label: 'Sample I/O' }] : []),
+    ...((experiment.timeComplexity || experiment.spaceComplexity) ? [{ id: 'sec-complexity', label: 'Complexity' }] : []),
     ...(experiment.vivaQuestions && experiment.vivaQuestions.length > 0 ? [{ id: 'sec-viva', label: 'Viva Questions' }] : []),
     ...(experiment.result || experiment.conclusion ? [{ id: 'sec-result', label: 'Result & Conclusion' }] : []),
     ...(experiment.quickRevision ? [{ id: 'sec-revision', label: 'Quick Revision' }] : []),
@@ -109,9 +277,10 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
                     {experiment.topic}
                   </span>
                 )}
-                {experiment.sourceReference && (
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Source: {experiment.sourceReference.docName} (p. {experiment.sourceReference.pageNumber})
+                {experiment.sourceReference?.docName && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900 text-purple-700 dark:text-purple-300">
+                    <ShieldCheck className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                    Source: {experiment.sourceReference.docName}
                   </span>
                 )}
               </div>
@@ -125,7 +294,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
             <div className="flex items-center gap-2 shrink-0 no-print flex-wrap">
               <button
                 onClick={handleDownloadPdf}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors shadow-sm"
                 title="Download this experiment as PDF"
               >
                 <FileDown className="w-3.5 h-3.5" />
@@ -187,9 +356,31 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
               {experiment.problemStatement}
             </div>
           )}
+
+          {experiment.booleanExpression && (
+            <div className="mt-3 p-3 rounded-lg bg-indigo-50/70 dark:bg-[#151c2e] border border-indigo-200 dark:border-indigo-900/60 flex items-center gap-2 font-mono text-xs md:text-sm text-indigo-900 dark:text-indigo-200 overflow-x-auto">
+              <span className="font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 shrink-0">Governing Equation:</span>
+              <span className="font-bold">{experiment.booleanExpression}</span>
+            </div>
+          )}
         </section>
 
-        {/* SECTION 2: PREREQUISITES (Educational Conceptual Foundations) */}
+        {/* SECTION 2: THEORY & DEVICE PHYSICS (for VLSI/Hardware) */}
+        {experiment.theory && (
+          <section id="sec-theory" className="mb-10 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                Theory & Fundamental Principles
+              </h2>
+            </div>
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+              {renderFormattedTheory(experiment.theory)}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 3: PREREQUISITES */}
         {experiment.prerequisites && experiment.prerequisites.length > 0 && (
           <section id="sec-prereq" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
@@ -221,13 +412,149 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 3: STEP-BY-STEP ALGORITHM */}
+        {/* SECTION 4: CIRCUIT SCHEMATICS & DIAGRAMS */}
+        {experiment.logicDiagrams && experiment.logicDiagrams.length > 0 && (
+          <section id="sec-schematic" className="mb-10 scroll-mt-20">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                  Original Circuit Schematics & Simulation Diagrams
+                </h2>
+              </div>
+              <span className="text-xs text-slate-500 font-mono">
+                {experiment.logicDiagrams.length} Schematic{experiment.logicDiagrams.length > 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <div className="space-y-6">
+              {experiment.logicDiagrams.map((diag, idx) => (
+                <div
+                  key={diag.id || idx}
+                  className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] overflow-hidden shadow-sm"
+                >
+                  <div className="relative group bg-slate-900 dark:bg-black/80 flex items-center justify-center p-3 sm:p-4 min-h-[220px]">
+                    <img
+                      src={diag.url}
+                      alt={diag.alt || diag.caption}
+                      className="max-h-[380px] w-auto max-w-full object-contain rounded transition-transform duration-200 cursor-pointer"
+                      onClick={() => openImageModal(diag.url, diag.caption, `Circuit Schematic ${idx + 1}`)}
+                    />
+                    <div className="absolute top-3 right-3 opacity-90 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openImageModal(diag.url, diag.caption, `Circuit Schematic ${idx + 1}`)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-mono border border-slate-700 shadow-lg backdrop-blur"
+                        title="Click to view full-resolution image"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                        <span>Inspect</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-3.5 border-t border-slate-200 dark:border-[#1f293d] bg-slate-50 dark:bg-[#162032] text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0"></span>
+                    <span className="font-medium">{diag.caption}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Components List Table (if provided) */}
+            {experiment.componentsList && experiment.componentsList.length > 0 && (
+              <div className="mt-4 p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+                <h3 className="text-xs uppercase font-mono font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Identified Circuit Components & Connections</span>
+                </h3>
+                <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-[#1f293d]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
+                      <tr>
+                        <th className="px-3 py-2">Designator</th>
+                        <th className="px-3 py-2">Component Type</th>
+                        <th className="px-3 py-2">Value / SPICE Model</th>
+                        <th className="px-3 py-2">Circuit Role</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-[#1f293d]">
+                      {experiment.componentsList.map((c, i) => (
+                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-[#111827]">
+                          <td className="px-3 py-2 font-mono font-bold text-purple-600 dark:text-purple-400">{c.designator}</td>
+                          <td className="px-3 py-2 font-medium text-slate-800 dark:text-slate-200">{c.component}</td>
+                          <td className="px-3 py-2 font-mono text-blue-600 dark:text-blue-400">{c.value}</td>
+                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{c.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* SECTION 5: TRUTH TABLE (for digital / latch experiments) */}
+        {experiment.truthTable && (
+          <section id="sec-truthtable" className="mb-10 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-3">
+              <Binary className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                {experiment.truthTable.title || 'Functional Truth Table & State Transitions'}
+              </h2>
+            </div>
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+              <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-[#1f293d]">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
+                    <tr>
+                      {experiment.truthTable.headers.map((h, idx) => (
+                        <th key={idx} className="px-3.5 py-2.5">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-[#1f293d] bg-white dark:bg-[#0c0d12]">
+                    {experiment.truthTable.rows.map((row, rIdx) => {
+                      const isForbidden = row.some((c) => String(c).toLowerCase().includes('forbidden') || String(c).toLowerCase().includes('invalid'));
+                      return (
+                        <tr
+                          key={rIdx}
+                          className={`hover:bg-slate-50 dark:hover:bg-[#111827] ${
+                            isForbidden ? 'bg-rose-50/50 dark:bg-rose-950/20' : ''
+                          }`}
+                        >
+                          {row.map((cell, cIdx) => (
+                            <td
+                              key={cIdx}
+                              className={`px-3.5 py-2 font-mono ${
+                                cIdx < 2
+                                  ? 'font-bold text-blue-700 dark:text-blue-400'
+                                  : isForbidden
+                                  ? 'text-rose-700 dark:text-rose-300 font-semibold'
+                                  : 'text-slate-800 dark:text-slate-200'
+                              }`}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 6: STEP-BY-STEP ALGORITHM / PROCEDURE */}
         {experiment.algorithm && experiment.algorithm.length > 0 && (
           <section id="sec-algo" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
               <ListOrdered className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
-                Step-by-Step Algorithm
+                Step-by-Step Procedure & Execution
               </h2>
             </div>
             <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
@@ -245,18 +572,198 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 4: COMPLETE ORIGINAL PROGRAM */}
+        {/* SECTION 7: SIMULATION SETUP & DIRECTIVES */}
+        {experiment.simulationSetup && (
+          <section id="sec-simsetup" className="mb-10 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-3">
+              <Settings className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                Simulation Setup & SPICE Directives
+              </h2>
+            </div>
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm space-y-4">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-500">Software Environment:</span>
+                <span className="px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/50 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 font-bold">
+                  {experiment.simulationSetup.software}
+                </span>
+              </div>
+
+              {experiment.simulationSetup.directives && experiment.simulationSetup.directives.length > 0 && (
+                <div>
+                  <h4 className="text-xs uppercase font-mono font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    SPICE Analysis Directives:
+                  </h4>
+                  <div className="p-3 rounded-lg bg-slate-900 dark:bg-[#070a12] border border-slate-800 font-mono text-xs text-emerald-400 space-y-1 overflow-x-auto">
+                    {experiment.simulationSetup.directives.map((dir, i) => (
+                      <div key={i}>{dir}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {experiment.simulationSetup.parameters && experiment.simulationSetup.parameters.length > 0 && (
+                <div>
+                  <h4 className="text-xs uppercase font-mono font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Key Input Parameters:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {experiment.simulationSetup.parameters.map((p, i) => (
+                      <div key={i} className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#182234] border border-slate-200 dark:border-[#1f293d]">
+                        <div className="flex items-center justify-between font-mono mb-1">
+                          <span className="font-bold text-slate-900 dark:text-white">{p.name}</span>
+                          <span className="text-blue-600 dark:text-blue-400">{p.value}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 8: ORIGINAL OUTPUT WAVEFORMS & SIGNAL ANALYSIS */}
+        {experiment.waveforms && experiment.waveforms.length > 0 && (
+          <section id="sec-waveforms" className="mb-10 scroll-mt-20">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                  Original Output Waveforms & Signal Analysis
+                </h2>
+              </div>
+              <span className="text-xs text-slate-500 font-mono">
+                {experiment.waveforms.length} Waveform{experiment.waveforms.length > 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <div className="space-y-6">
+              {experiment.waveforms.map((wave, idx) => (
+                <div
+                  key={wave.id || idx}
+                  className="rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] overflow-hidden shadow-sm"
+                >
+                  <div className="relative group bg-slate-950 flex items-center justify-center p-3 sm:p-4 min-h-[220px]">
+                    <img
+                      src={wave.url}
+                      alt={wave.alt || wave.caption}
+                      className="max-h-[420px] w-auto max-w-full object-contain rounded transition-transform duration-200 cursor-pointer"
+                      onClick={() => openImageModal(wave.url, wave.caption, `Simulation Waveform ${idx + 1}`)}
+                    />
+                    <div className="absolute top-3 right-3 opacity-90 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openImageModal(wave.url, wave.caption, `Simulation Waveform ${idx + 1}`)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-mono border border-slate-700 shadow-lg backdrop-blur"
+                        title="Click to view full-resolution waveform"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                        <span>Inspect</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-3.5 border-t border-slate-200 dark:border-[#1f293d] bg-slate-50 dark:bg-[#162032] text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+                    <span className="font-medium">{wave.caption}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Trace-by-Trace Analysis Breakdown */}
+            {experiment.traceBreakdown && experiment.traceBreakdown.length > 0 && (
+              <div className="mt-4 p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+                <h3 className="text-xs uppercase font-mono font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Signal-by-Signal Trace Interpretation</span>
+                </h3>
+                <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-[#1f293d]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
+                      <tr>
+                        <th className="px-3 py-2">Signal Label</th>
+                        <th className="px-3 py-2">Color</th>
+                        <th className="px-3 py-2">Trace Type</th>
+                        <th className="px-3 py-2">Observed Behavior & Phase Relation</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-[#1f293d]">
+                      {experiment.traceBreakdown.map((tr, i) => (
+                        <tr key={i} className="hover:bg-slate-50 dark:hover:bg-[#111827]">
+                          <td className="px-3 py-2 font-mono font-bold text-blue-600 dark:text-blue-400">{tr.label}</td>
+                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{tr.color}</td>
+                          <td className="px-3 py-2 font-mono text-[11px] text-purple-600 dark:text-purple-400">{tr.type}</td>
+                          <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{tr.behavior}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* SECTION 9: OBSERVATION TABLE */}
+        {experiment.observationTable && (
+          <section id="sec-observation" className="mb-10 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-3">
+              <TableIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                {experiment.observationTable.title || 'Experimental Observation & Parametric Data'}
+              </h2>
+            </div>
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+              <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-[#1f293d]">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
+                    <tr>
+                      {experiment.observationTable.headers.map((h, idx) => (
+                        <th key={idx} className="px-3.5 py-2.5">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-[#1f293d] bg-white dark:bg-[#0c0d12]">
+                    {experiment.observationTable.rows.map((row, rIdx) => (
+                      <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-[#111827]">
+                        {row.map((cell, cIdx) => (
+                          <td
+                            key={cIdx}
+                            className={`px-3.5 py-2 font-mono ${
+                              cIdx === 0
+                                ? 'font-bold text-blue-600 dark:text-blue-400'
+                                : 'text-slate-800 dark:text-slate-200'
+                            }`}
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 10: COMPLETE SOURCE CODE / SPICE NETLIST */}
         {experiment.codeSnippets && experiment.codeSnippets.length > 0 && (
           <section id="sec-code" className="mb-10 scroll-mt-20">
             <div className="flex items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <FileCode2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
-                  Complete Source Code
+                  {experiment.codeSnippets[0].language.toLowerCase() === 'spice'
+                    ? 'Verified SPICE Simulation Netlist'
+                    : 'Complete Source Code'}
                 </h2>
               </div>
               <span className="text-xs text-slate-500 font-mono">
-                Exact logic from PDF (Page {experiment.sourceReference?.pageNumber || '1'})
+                {experiment.codeSnippets[0].language.toUpperCase()}
               </span>
             </div>
 
@@ -278,7 +785,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 5: LINE-BY-LINE / BLOCK-BY-BLOCK EXPLANATION */}
+        {/* SECTION 11: LINE-BY-LINE EXPLANATION (for software code) */}
         {experiment.lineByLineExplanation && experiment.lineByLineExplanation.length > 0 && (
           <section id="sec-linebyline" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
@@ -303,7 +810,6 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
                   </div>
 
                   <div className="p-4 text-xs md:text-sm space-y-2.5">
-                    {/* Snippet preview */}
                     <pre className="p-2.5 rounded bg-slate-100 dark:bg-[#070a12] border border-slate-200 dark:border-[#1f293d] font-mono text-xs text-slate-800 dark:text-slate-200 overflow-x-auto whitespace-pre">
                       <code>{item.codeSnippet}</code>
                     </pre>
@@ -341,7 +847,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 6: DRY RUN & TRACE */}
+        {/* SECTION 12: DRY RUN (for algorithm code) */}
         {experiment.dryRun && (
           <section id="sec-dryrun" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
@@ -363,7 +869,6 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
                 </div>
               </div>
 
-              {/* Dry Run Trace Table */}
               <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-[#1f293d]">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-[#182234] text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold border-b border-slate-200 dark:border-[#1f293d]">
@@ -402,7 +907,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 7: SAMPLE INPUT & OUTPUT */}
+        {/* SECTION 13: SAMPLE I/O (for programs) */}
         {(experiment.sampleInput || experiment.sampleOutput) && (
           <section id="sec-io" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
@@ -437,39 +942,45 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 8: COMPLEXITY ANALYSIS */}
-        <section id="sec-complexity" className="mb-10 scroll-mt-20">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4 text-amber-500" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
-              Complexity Analysis (Time & Space)
-            </h2>
-          </div>
-
-          <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
-            <div className="flex flex-wrap gap-4 mb-3">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-[#162032] border border-slate-200 dark:border-[#1f293d] text-xs font-mono">
-                <Clock className="w-4 h-4 text-amber-500" />
-                <span className="text-slate-500">Time:</span>
-                <span className="text-slate-900 dark:text-white font-bold">{experiment.timeComplexity || 'O(n)'}</span>
-              </div>
-
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-[#162032] border border-slate-200 dark:border-[#1f293d] text-xs font-mono">
-                <HardDrive className="w-4 h-4 text-emerald-500" />
-                <span className="text-slate-500">Space:</span>
-                <span className="text-slate-900 dark:text-white font-bold">{experiment.spaceComplexity || 'O(1)'}</span>
-              </div>
+        {/* SECTION 14: COMPLEXITY ANALYSIS (if relevant) */}
+        {(experiment.timeComplexity || experiment.spaceComplexity) && (
+          <section id="sec-complexity" className="mb-10 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                Complexity Analysis
+              </h2>
             </div>
 
-            {experiment.complexityExplanation && (
-              <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
-                {experiment.complexityExplanation}
-              </p>
-            )}
-          </div>
-        </section>
+            <div className="p-5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+              <div className="flex flex-wrap gap-4 mb-3">
+                {experiment.timeComplexity && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-[#162032] border border-slate-200 dark:border-[#1f293d] text-xs font-mono">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    <span className="text-slate-500">Time:</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{experiment.timeComplexity}</span>
+                  </div>
+                )}
 
-        {/* SECTION 9: VIVA QUESTIONS & ANSWERS */}
+                {experiment.spaceComplexity && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-[#162032] border border-slate-200 dark:border-[#1f293d] text-xs font-mono">
+                    <HardDrive className="w-4 h-4 text-emerald-500" />
+                    <span className="text-slate-500">Space:</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{experiment.spaceComplexity}</span>
+                  </div>
+                )}
+              </div>
+
+              {experiment.complexityExplanation && (
+                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
+                  {experiment.complexityExplanation}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 15: VIVA VOCE QUESTIONS & ANSWERS */}
         {experiment.vivaQuestions && experiment.vivaQuestions.length > 0 && (
           <section id="sec-viva" className="mb-10 scroll-mt-20">
             <div className="flex items-center justify-between gap-2 mb-3">
@@ -498,7 +1009,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 10: RESULT & CONCLUSION */}
+        {/* SECTION 16: RESULT & CONCLUSION */}
         {(experiment.result || experiment.conclusion) && (
           <section id="sec-result" className="mb-10 scroll-mt-20">
             <div className="flex items-center gap-2 mb-3">
@@ -510,8 +1021,9 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {experiment.result && (
                 <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
-                  <h3 className="text-xs uppercase font-mono font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5">
-                    Result
+                  <h3 className="text-xs uppercase font-mono font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Experimental Result</span>
                   </h3>
                   <p className="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                     {experiment.result}
@@ -521,8 +1033,9 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
 
               {experiment.conclusion && (
                 <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
-                  <h3 className="text-xs uppercase font-mono font-semibold text-blue-600 dark:text-blue-400 mb-1.5">
-                    Conclusion
+                  <h3 className="text-xs uppercase font-mono font-semibold text-blue-600 dark:text-blue-400 mb-1.5 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    <span>Engineering Conclusion</span>
                   </h3>
                   <p className="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                     {experiment.conclusion}
@@ -533,7 +1046,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </section>
         )}
 
-        {/* SECTION 11: QUICK REVISION SUMMARY BOX */}
+        {/* SECTION 17: QUICK REVISION SUMMARY BOX */}
         {experiment.quickRevision && (
           <section id="sec-revision" className="mb-12 scroll-mt-20">
             <div className="p-5 rounded-xl bg-blue-50/60 dark:bg-[#141e33] border border-blue-200 dark:border-blue-900/50 shadow-sm">
@@ -632,7 +1145,7 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
 
       {/* Right-Side Sticky Table of Contents (Desktop) */}
       <aside className="hidden xl:block w-56 shrink-0 no-print">
-        <div className="sticky top-20 p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm">
+        <div className="sticky top-20 p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-sm max-h-[calc(100vh-6rem)] overflow-y-auto">
           <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
             On this page
           </div>
@@ -679,6 +1192,93 @@ export const ExperimentView: React.FC<ExperimentViewProps> = ({
           </div>
         </div>
       </aside>
+
+      {/* FULLSCREEN ZOOMABLE IMAGE LIGHTBOX MODAL */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={() => {
+            setModalImage(null);
+            setZoomLevel(1);
+          }}
+        >
+          {/* Top Control Bar */}
+          <div
+            className="w-full max-w-5xl flex items-center justify-between pb-3 text-white no-print"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-blue-600 text-xs font-mono font-bold">
+                HIGH RESOLUTION
+              </span>
+              <span className="text-sm font-semibold truncate max-w-xs md:max-w-md">
+                {modalImage.title}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+                <button
+                  onClick={() => setZoomLevel((z) => Math.max(0.75, z - 0.25))}
+                  className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <span className="px-2 font-mono text-xs text-slate-300">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <button
+                  onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.25))}
+                  className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setZoomLevel(1)}
+                  className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white border-l border-slate-700 ml-0.5"
+                  title="Reset Zoom"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  setModalImage(null);
+                  setZoomLevel(1);
+                }}
+                className="p-1.5 bg-slate-800 hover:bg-red-600/80 rounded-lg border border-slate-700 text-slate-300 hover:text-white transition-colors"
+                title="Close Viewer (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Centered Image Container */}
+          <div
+            className="w-full max-w-5xl flex-1 flex items-center justify-center overflow-auto rounded-xl bg-slate-950/80 border border-slate-800 p-2 sm:p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={modalImage.url}
+              alt={modalImage.caption}
+              style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.15s ease-out' }}
+              className="max-h-[75vh] w-auto max-w-full object-contain select-none cursor-grab active:cursor-grabbing"
+            />
+          </div>
+
+          {/* Bottom Caption Bar */}
+          <div
+            className="w-full max-w-5xl pt-3 text-center text-xs md:text-sm text-slate-300 font-sans"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {modalImage.caption}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -98,6 +98,25 @@ export interface Experiment {
   booleanExpression?: string;
   waveforms?: MediaAsset[];
   observationTable?: TableData;
+  simulationSetup?: {
+    software: string;
+    directives: string[];
+    parameters?: { name: string; value: string; description: string }[];
+    notes?: string;
+  };
+  componentsList?: {
+    designator: string;
+    component: string;
+    value: string;
+    description: string;
+  }[];
+  traceBreakdown?: {
+    label: string;
+    signal: string;
+    color: string;
+    type: string;
+    behavior: string;
+  }[];
   result?: string;
   conclusion?: string;
   vivaQuestions?: QuestionItem[];

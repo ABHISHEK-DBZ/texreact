@@ -38,17 +38,21 @@ export function App() {
       const custom = getCustomSubjects();
       if (custom && custom.length > 0) {
         const dsaSub = custom.find((s) => s.id === 'dsa');
-        // Ensure DSA contains the verified 9 experiments extracted from the PDF
+        const dvlsiSub = custom.find((s) => s.id === 'dvlsi');
+        // Ensure DSA contains the verified 9 experiments and DVLSI contains the 5 verified experiments
         if (
           dsaSub &&
           dsaSub.experiments.length >= 9 &&
-          dsaSub.experiments[0].codeSnippets?.[0]?.language === 'python'
+          dsaSub.experiments[0].codeSnippets?.[0]?.language === 'python' &&
+          dvlsiSub &&
+          dvlsiSub.experiments.length >= 5
         ) {
           return custom;
         }
       }
       // Stale cache detected; clear and default to authentic INITIAL_SUBJECTS
       localStorage.removeItem('studycode_custom_subjects_v1');
+      localStorage.removeItem('studycode_custom_subjects_v2');
     } catch {
       // ignore
     }

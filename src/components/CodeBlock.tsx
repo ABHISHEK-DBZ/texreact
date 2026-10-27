@@ -89,7 +89,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 
       {/* Code Body with Line Numbers */}
       <div
-        className={`relative overflow-x-auto font-mono leading-relaxed transition-all ${
+        className={`relative overflow-x-auto font-mono leading-relaxed transition-all print:max-h-none print:overflow-visible ${
           !isExpanded && lines.length > 28 ? 'max-h-80 overflow-y-hidden' : ''
         }`}
       >
@@ -115,7 +115,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         {!isExpanded && lines.length > 28 && (
           <div
             onClick={() => setIsExpanded(true)}
-            className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white dark:from-[#070a12] to-transparent flex items-end justify-center pb-2 cursor-pointer group"
+            className="no-print absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white dark:from-[#070a12] to-transparent flex items-end justify-center pb-2 cursor-pointer group"
           >
             <span className="text-xs text-blue-600 dark:text-blue-400 group-hover:underline flex items-center gap-1 bg-slate-100 dark:bg-[#111827] px-3 py-1 rounded-full border border-slate-200 dark:border-[#1f293d] shadow-sm">
               <ChevronDown className="w-3 h-3" /> Show remaining {lines.length - 14} lines

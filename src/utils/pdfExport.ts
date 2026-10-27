@@ -26,7 +26,7 @@ export function exportExperimentPdf(experiment: Experiment, subject: Subject): v
 
     // Running Footer
     doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
-    doc.text(`StudyCode Hub | Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+    doc.text(`StudyHub | Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
   };
 
   const checkPageBreak = (neededHeight: number) => {
@@ -420,7 +420,7 @@ export function exportSubjectPdf(subject: Subject): void {
     doc.text(`${subject.name} — Complete Laboratory Study Guide`, margin, 10);
     doc.line(margin, 12, pageWidth - margin, 12);
     doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
-    doc.text(`StudyCode Hub | Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+    doc.text(`StudyHub | Page ${pageNum}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
   };
 
   const checkPageBreak = (neededHeight: number) => {

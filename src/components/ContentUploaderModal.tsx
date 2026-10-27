@@ -26,7 +26,7 @@ export const ContentUploaderModal: React.FC<ContentUploaderModalProps> = ({
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(subjects, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', 'studycode_hub_library.json');
+    downloadAnchor.setAttribute('download', 'studyhub_library.json');
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -103,7 +103,7 @@ export const ContentUploaderModal: React.FC<ContentUploaderModalProps> = ({
               </button>
             </div>
             <p className="mb-3">
-              Paste structured JSON data conforming to the StudyCode Hub content schema below to update experiments, viva questions, and programs:
+              Paste structured JSON data conforming to the Microsoft Store content schema below to update experiments, viva questions, and programs:
             </p>
 
             <textarea

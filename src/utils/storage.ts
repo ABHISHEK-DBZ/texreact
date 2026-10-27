@@ -1,7 +1,7 @@
 import type { UserProgress, Subject } from '../types';
 
 const PROGRESS_KEY = 'studycode_progress_v1';
-const SITE_TITLE_KEY = 'studycode_site_title_v1';
+const SITE_TITLE_KEY = 'studycode_site_title_v2';
 const CUSTOM_SUBJECTS_KEY = 'studycode_custom_subjects_v3';
 const THEME_KEY = 'studycode_theme_v1';
 
@@ -31,7 +31,7 @@ export function saveTheme(theme: ThemeMode): void {
   }
 }
 
-export function getSavedSiteTitle(defaultTitle: string = 'StudyCode Hub'): string {
+export function getSavedSiteTitle(defaultTitle: string = 'StudyHub'): string {
   try {
     const saved = localStorage.getItem(SITE_TITLE_KEY);
     return saved && saved.trim() ? saved : defaultTitle;

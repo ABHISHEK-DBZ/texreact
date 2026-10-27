@@ -1,16 +1,16 @@
 {
-  "short_name": "StudyCode",
-  "name": "StudyCode Hub — Engineering Study & Code Library",
+  "short_name": "StudyHub",
+  "name": "StudyHub — Your Complete Engineering Study Companion",
   "icons": [
     {
       "src": "/favicon.svg",
       "type": "image/svg+xml",
-      "sizes": "192x192 512x512"
+      "sizes": "any"
     }
   ],
   "start_url": "/",
-  "background_color": "#0c0d12",
-  "theme_color": "#0c0d12",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
   "display": "standalone",
   "orientation": "portrait"
 }

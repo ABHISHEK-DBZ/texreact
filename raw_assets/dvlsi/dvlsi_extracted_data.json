@@ -1,0 +1,131 @@
+{
+  "Drain & transfer.docx": {
+    "filename": "Drain & transfer.docx",
+    "slug": "drain_and_transfer",
+    "paragraphs": [
+      "Drain char",
+      "VTO  =0",
+      "Tranfer Characteristics",
+      "VTo = 2",
+      "Transfer",
+      "Drain"
+    ],
+    "tables": [],
+    "images": [
+      {
+        "original": "word/media/image1.png",
+        "extracted": "/assets/dvlsi/drain_and_transfer_image1.png",
+        "size": 40802
+      },
+      {
+        "original": "word/media/image2.png",
+        "extracted": "/assets/dvlsi/drain_and_transfer_image2.png",
+        "size": 37344
+      },
+      {
+        "original": "word/media/image3.png",
+        "extracted": "/assets/dvlsi/drain_and_transfer_image3.png",
+        "size": 39372
+      },
+      {
+        "original": "word/media/image4.png",
+        "extracted": "/assets/dvlsi/drain_and_transfer_image4.png",
+        "size": 43631
+      }
+    ]
+  },
+  "scaling.docx": {
+    "filename": "scaling.docx",
+    "slug": "scaling",
+    "paragraphs": [
+      "Without scaling",
+      "Constant voltage scaling",
+      "Full scaling"
+    ],
+    "tables": [],
+    "images": [
+      {
+        "original": "word/media/image1.png",
+        "extracted": "/assets/dvlsi/scaling_image1.png",
+        "size": 42639
+      },
+      {
+        "original": "word/media/image2.png",
+        "extracted": "/assets/dvlsi/scaling_image2.png",
+        "size": 31988
+      },
+      {
+        "original": "word/media/image3.png",
+        "extracted": "/assets/dvlsi/scaling_image3.png",
+        "size": 28783
+      }
+    ]
+  },
+  "SR latch Using NOR.docx": {
+    "filename": "SR latch Using NOR.docx",
+    "slug": "sr_latch_using_nor",
+    "paragraphs": [
+      "SR latch Using NOR"
+    ],
+    "tables": [],
+    "images": [
+      {
+        "original": "word/media/image1.png",
+        "extracted": "/assets/dvlsi/sr_latch_using_nor_image1.png",
+        "size": 30132
+      },
+      {
+        "original": "word/media/image2.png",
+        "extracted": "/assets/dvlsi/sr_latch_using_nor_image2.png",
+        "size": 34566
+      },
+      {
+        "original": "word/media/image3.png",
+        "extracted": "/assets/dvlsi/sr_latch_using_nor_image3.png",
+        "size": 37283
+      }
+    ]
+  },
+  "Tranfer char of nmos, ip and op.docx": {
+    "filename": "Tranfer char of nmos, ip and op.docx",
+    "slug": "tranfer_char_of_nmos_ip_and_op",
+    "paragraphs": [
+      "Tranfer char of nmos",
+      "Ip op waveform of nmos resistive load inverter"
+    ],
+    "tables": [],
+    "images": [
+      {
+        "original": "word/media/image1.png",
+        "extracted": "/assets/dvlsi/tranfer_char_of_nmos_ip_and_op_image1.png",
+        "size": 34961
+      },
+      {
+        "original": "word/media/image2.png",
+        "extracted": "/assets/dvlsi/tranfer_char_of_nmos_ip_and_op_image2.png",
+        "size": 34432
+      }
+    ]
+  },
+  "Transfer curve of cmos.docx": {
+    "filename": "Transfer curve of cmos.docx",
+    "slug": "transfer_curve_of_cmos",
+    "paragraphs": [
+      "Transfer curve of cmos",
+      "Input output waveform of cmos inverter"
+    ],
+    "tables": [],
+    "images": [
+      {
+        "original": "word/media/image1.png",
+        "extracted": "/assets/dvlsi/transfer_curve_of_cmos_image1.png",
+        "size": 43830
+      },
+      {
+        "original": "word/media/image2.png",
+        "extracted": "/assets/dvlsi/transfer_curve_of_cmos_image2.png",
+        "size": 35954
+      }
+    ]
+  }
+}

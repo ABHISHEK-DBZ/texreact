@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ArrowRight } from 'lucide-react';
+import { Logo } from './Logo';
 
 const PIN = 'vlsi1';
 const UNLOCK_KEY = 'studycode_unlocked_v1';
@@ -41,12 +42,11 @@ export const PinGate: React.FC<{ children: React.ReactNode }> = ({ children }) =
         className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1f293d] shadow-xl p-6 space-y-5"
       >
         <div className="flex flex-col items-center text-center gap-2">
-          <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Lock className="w-5 h-5" />
-          </div>
-          <h1 className="text-base font-bold text-slate-900 dark:text-white">Access Required</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Enter the access PIN to open the study library.
+          <Logo className="w-12 h-12 shadow-sm" />
+          <h1 className="text-base font-bold text-slate-900 dark:text-white">StudyHub</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-blue-500" />
+            Enter access PIN to continue
           </p>
         </div>
 

@@ -26,12 +26,30 @@ import { RevisionQuizModal } from './components/RevisionQuizModal';
 import { ContentUploaderModal } from './components/ContentUploaderModal';
 import { PdfStudyModal } from './components/PdfStudyModal';
 
+type View = 'dashboard' | 'subject' | 'experiment' | 'bookmarks';
+
+const NAV_KEY = 'studycode_last_view_v1';
+
+function getLastView(): { view: View; subjectId: string | null; experimentId: string | null } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(NAV_KEY) || '{}');
+    const views: View[] = ['dashboard', 'subject', 'experiment', 'bookmarks'];
+    return {
+      view: views.includes(saved.view) ? saved.view : 'dashboard',
+      subjectId: typeof saved.subjectId === 'string' ? saved.subjectId : null,
+      experimentId: typeof saved.experimentId === 'string' ? saved.experimentId : null,
+    };
+  } catch {
+    return { view: 'dashboard', subjectId: null, experimentId: null };
+  }
+}
+
 export function App() {
   // Theme state (Light-first by default)
   const [theme, setTheme] = useState<ThemeMode>(() => getSavedTheme());
 
   // Site Title
-  const [siteTitle, setSiteTitle] = useState(() => getSavedSiteTitle('StudyCode Hub'));
+  const [siteTitle, setSiteTitle] = useState(() => getSavedSiteTitle('StudyHub'));
 
   // Subjects Library
   const [subjects, setSubjects] = useState<Subject[]>(() => {
@@ -65,10 +83,26 @@ export function App() {
   // User Progress (Bookmarks, Reviewed items, Recent)
   const [progress, setProgress] = useState<UserProgress>(() => getUserProgress());
 
-  // Navigation State
-  const [currentView, setCurrentView] = useState<'dashboard' | 'subject' | 'experiment' | 'bookmarks'>('dashboard');
-  const [activeSubjectId, setActiveSubjectId] = useState<string | null>(null);
-  const [activeExperimentId, setActiveExperimentId] = useState<string | null>(null);
+  // Navigation State (restored from the last session)
+  const [initialNav] = useState(() => {
+    const saved = getLastView();
+    const subject = subjects.find((s) => s.id === saved.subjectId);
+    const experiment = subject?.experiments.find((e) => e.id === saved.experimentId);
+    if (saved.view === 'experiment' && !experiment) {
+      return {
+        view: subject ? ('subject' as View) : ('dashboard' as View),
+        subjectId: subject?.id ?? null,
+        experimentId: null,
+      };
+    }
+    if (saved.view === 'subject' && !subject) {
+      return { view: 'dashboard' as View, subjectId: null, experimentId: null };
+    }
+    return saved;
+  });
+  const [currentView, setCurrentView] = useState<View>(initialNav.view);
+  const [activeSubjectId, setActiveSubjectId] = useState<string | null>(initialNav.subjectId);
+  const [activeExperimentId, setActiveExperimentId] = useState<string | null>(initialNav.experimentId);
 
   // Modals & Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -85,6 +119,14 @@ export function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Remember the current page across reloads
+  useEffect(() => {
+    localStorage.setItem(
+      NAV_KEY,
+      JSON.stringify({ view: currentView, subjectId: activeSubjectId, experimentId: activeExperimentId })
+    );
+  }, [currentView, activeSubjectId, activeExperimentId]);
 
   // Keyboard shortcut for Search (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -197,12 +239,24 @@ export function App() {
       <Navbar
         siteTitle={siteTitle}
         theme={theme}
+        currentView={currentView}
         onToggleTheme={handleToggleTheme}
         onUpdateSiteTitle={handleUpdateSiteTitle}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         onNavigateHome={handleNavigateHome}
+        onNavigateSubjects={() => {
+          if (currentView !== 'dashboard') {
+            handleNavigateHome();
+          }
+          setTimeout(() => {
+            const el = document.getElementById('subjects-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 60);
+        }}
+        onNavigateExperiments={() => setIsSearchOpen(true)}
         onNavigateBookmarks={() => setCurrentView('bookmarks')}
+        onOpenRevisionModal={() => setIsRevisionOpen(true)}
         onOpenPdfMenu={() => setIsPdfModalOpen(true)}
         bookmarksCount={progress.bookmarks.length}
       />
@@ -225,8 +279,8 @@ export function App() {
           onOpenUploader={() => setIsUploaderOpen(true)}
         />
 
-        {/* Content Area (with margin offset for fixed desktop sidebar) */}
-        <main className="flex-1 md:ml-72 min-w-0 pb-16">
+        {/* Content Area */}
+        <main className="flex-1 w-full min-w-0 pb-16">
           {currentView === 'dashboard' && (
             <Dashboard
               siteTitle={siteTitle}

@@ -203,16 +203,34 @@
   background: #3b4863;
 }
 
-/* Print styling for crisp physical printing and clean PDF output */
+/* Print styling for clean, professional physical output */
 @media print {
-  body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt;
+  @page {
+    size: A4;
+    margin: 14mm;
   }
 
-  header, aside, .no-print, button, [role="dialog"] {
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 10.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print,
+  button,
+  [role="dialog"] {
     display: none !important;
+  }
+
+  /* Guarantee a light, readable printout from dark mode too */
+  .dark,
+  .dark * {
+    background-color: transparent !important;
+    color: #111111 !important;
+    border-color: #d4d4d8 !important;
   }
 
   main {
@@ -227,14 +245,39 @@
     padding: 0 !important;
   }
 
-  pre, code {
-    white-space: pre-wrap !important;
-    font-size: 9pt !important;
-    border: 1px solid #ccc !important;
+  section {
+    margin-bottom: 16pt !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  tr,
+  pre,
+  img,
+  svg {
+    break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  table {
-    page-break-inside: avoid;
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap !important;
+    font-size: 8.5pt !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
   }
 }
